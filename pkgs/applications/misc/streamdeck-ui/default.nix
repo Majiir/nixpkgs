@@ -43,9 +43,9 @@ python3Packages.buildPythonApplication rec {
         mkdir -p "$out/etc/udev/rules.d"
         cp ${writeText udevRulesName udevRules} $out/etc/udev/rules.d/${udevRulesName}
 
-        mkdir -p "$out/share/applications" "$out/share/icons"
+        mkdir -p "$out/share/applications" "$out/share/pixmaps"
         cp ${desktopItem}/share/applications/* $out/share/applications
-        cp streamdeck_ui/logo.png $out/share/icons/streamdeck-ui.png
+        cp streamdeck_ui/logo.png $out/share/pixmaps/streamdeck-ui.png
       '';
 
   dontWrapQtApps = true;
