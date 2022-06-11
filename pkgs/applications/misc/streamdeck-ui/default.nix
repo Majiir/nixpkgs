@@ -2,6 +2,7 @@
 , python3Packages
 , wrapQtAppsHook
 , writeText
+, makeDesktopItem
 }:
 
 python3Packages.buildPythonApplication rec {
@@ -28,10 +29,23 @@ python3Packages.buildPythonApplication rec {
         SUBSYSTEM=="usb", ATTRS{idVendor}=="0fd9", ATTRS{idProduct}=="006d", TAG+="uaccess"
         SUBSYSTEM=="usb", ATTRS{idVendor}=="0fd9", ATTRS{idProduct}=="0080", TAG+="uaccess"
       '';
+      desktopItem =
+        (makeDesktopItem {
+          name = "Stream Deck UI";
+          desktopName = "Stream Deck UI";
+          icon = "streamdeck-ui";
+          exec = "streamdeck";
+          comment = "UI for the Elgato Stream Deck";
+          categories = [ "Utility" ];
+        });
     in
       ''
         mkdir -p "$out/etc/udev/rules.d"
         cp ${writeText udevRulesName udevRules} $out/etc/udev/rules.d/${udevRulesName}
+
+        mkdir -p "$out/share/applications" "$out/share/icons"
+        cp ${desktopItem}/share/applications/* $out/share/applications
+        cp streamdeck_ui/logo.png $out/share/icons/streamdeck-ui.png
       '';
 
   dontWrapQtApps = true;
