@@ -16,7 +16,6 @@
 # Compare sha256sum with https://www.oracle.com/webfolder/s/digest/8u281checksum.html
 # nix-store --add-fixed sha256 jdk-8u281-linux-x64.tar.gz
 
-let jfx = (callPackage (import ../openjfx8) { }); in
 stdenv.mkDerivation rec {
   pname = "tplink-escu";
   version = "1.3.10";

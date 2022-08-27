@@ -34909,6 +34909,8 @@ with pkgs;
 
   tre-command = callPackage ../tools/system/tre-command { };
 
+  tplink-escu = callPackage ../tools/networking/tplink-escu { };
+
   tree = callPackage ../tools/system/tree { };
 
   treesheets = callPackage ../applications/office/treesheets {
