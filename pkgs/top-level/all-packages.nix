@@ -10732,6 +10732,7 @@ with pkgs;
     buildUBoot
     ubootTools
     ubootPythonTools
+    ubootEnvTools
     ubootA20OlinuxinoLime
     ubootA20OlinuxinoLime2EMMC
     ubootBananaPi
