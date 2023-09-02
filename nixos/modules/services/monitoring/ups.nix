@@ -597,8 +597,6 @@ in
           ${cfg.upsd.extraConfig}
         '';
       "nut/upssched.conf".source = cfg.schedulerRules;
-      "nut/upsd.users".source = "/run/nut/upsd.users";
-      "nut/upsmon.conf".source = "/run/nut/upsmon.conf";
     };
 
     power.ups.schedulerRules = mkDefault "${pkgs.nut}/etc/upssched.conf.sample";
