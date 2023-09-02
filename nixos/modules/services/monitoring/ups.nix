@@ -318,7 +318,6 @@ let
         defaultText = literalMD ''
           {
             MINSUPPLIES = 1;
-            RUN_AS_USER = "root";
             NOTIFYCMD = "''${pkgs.nut}/bin/upssched";
             SHUTDOWNCMD = "''${pkgs.systemd}/bin/shutdown now";
           }
@@ -339,7 +338,6 @@ let
     config = {
       enable = mkDefault (elem cfg.mode [ "standalone" "netserver" "netclient" ]);
       settings = {
-        RUN_AS_USER = "root"; # TODO: replace 'root' by another username.
         MINSUPPLIES = mkDefault 1;
         NOTIFYCMD = mkDefault "${pkgs.nut}/bin/upssched";
         SHUTDOWNCMD = mkDefault "${pkgs.systemd}/bin/shutdown now";
@@ -527,16 +525,19 @@ in
       serviceConfig = {
         Type = "forking";
         ExecStartPre = "${createUpsmonConf}";
-        ExecStart = "${pkgs.nut}/sbin/upsmon";
+        # ExecStart = "${pkgs.nut}/sbin/upsmon -u root";
+        # ExecStart = "${pkgs.nut}/sbin/upsmon";
+        ExecStart = "!${pkgs.nut}/sbin/upsmon -u $USER"; # works with either + or ! (and maybe even nothing)
         ExecReload = [
           "${createUpsmonConf}"
           "${pkgs.nut}/sbin/upsmon -c reload"
         ];
         RuntimeDirectory = "nut/upsmon";
+        DynamicUser = true;
+        User = "nut";
         LoadCredential = mapAttrsToList (name: monitor: "upsmon_password_${name}:${monitor.passwordFile}") cfg.upsmon.monitor;
       };
       environment.NUT_CONFPATH = "%t/${serviceConfig.RuntimeDirectory}";
-      environment.NUT_STATEPATH = "%t/${serviceConfig.RuntimeDirectory}";
       restartTriggers = [
         (cfg.upsmon.settings.SHUTDOWNCMD or null)
         (cfg.upsmon.settings.POWERDOWNFLAG or null)
@@ -562,17 +563,21 @@ in
       serviceConfig = {
         Type = "forking";
         ExecStartPre = "${createUpsdConfigs}";
-        # TODO: replace 'root' by another username.
-        ExecStart = "${pkgs.nut}/sbin/upsd -u root";
+        ExecStart = "!${pkgs.nut}/sbin/upsd -u $USER"; # needs ! to avoid OOM error
+        # ExecStart = "${pkgs.nut}/sbin/upsd";
+        # ExecStart = "${pkgs.nut}/sbin/upsd -u root";
         ExecReload = [
           "${createUpsdConfigs}"
           "${pkgs.nut}/sbin/upsd -c reload"
         ];
         RuntimeDirectory = "nut/upsd";
+        StateDirectory = "nut";
+        DynamicUser = true;
+        User = "nut";
         LoadCredential = mapAttrsToList (name: user: "upsdusers_password_${name}:${user.passwordFile}") cfg.users;
       };
       environment.NUT_CONFPATH = "%t/${serviceConfig.RuntimeDirectory}";
-      environment.NUT_STATEPATH = "%t/${serviceConfig.RuntimeDirectory}";
+      environment.NUT_STATEPATH = "%S/${serviceConfig.StateDirectory}";
       restartTriggers = [
         upsdConf
       ];
@@ -587,14 +592,19 @@ in
       after = [ "upsd.service" ];
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
-        Type = "oneshot";
-        RemainAfterExit = true;
-        # TODO: replace 'root' by another username.
+        Type = "forking";
+        # RemainAfterExit = true;
+        # ExecStart = "+${pkgs.nut}/bin/upsdrvctl -u $USER start";
+        # ExecStart = "!${pkgs.nut}/bin/upsdrvctl start";
+        # ExecStart = "${pkgs.nut}/bin/upsdrvctl start";
         ExecStart = "${pkgs.nut}/bin/upsdrvctl -u root start";
         RuntimeDirectory = "nut/upsdrv";
+        StateDirectory = "nut";
+        # DynamicUser = true;
+        # User = "nut";
       };
       environment.NUT_CONFPATH = "/etc/nut";
-      environment.NUT_STATEPATH = "%t/${serviceConfig.RuntimeDirectory}";
+      environment.NUT_STATEPATH = "%S/${serviceConfig.StateDirectory}";
     };
 
     environment.etc = {
@@ -603,34 +613,11 @@ in
           MODE = ${cfg.mode}
         '';
       "nut/ups.conf".source = upsConf;
+      "nut/upsd.conf".source = upsdConf; # for upsdrvctl
       "nut/upssched.conf".source = cfg.schedulerRules;
     };
 
     power.ups.schedulerRules = mkDefault "${pkgs.nut}/etc/upssched.conf.sample";
-
-    system.activationScripts.upsSetup = stringAfter [ "users" "groups" ]
-      ''
-        # Used to store pid files of drivers.
-        mkdir -p /var/state/ups
-
-        # TODO: Remove this when we switch to a non-root user. (Make
-        # this the 'nut' user's home directory and auto-create it.)
-        mkdir -p -m 700 /var/lib/nut
-      '';
-
-
-/*
-    users.users.nut =
-      { uid = 84;
-        home = "/var/lib/nut";
-        createHome = true;
-        group = "nut";
-        description = "UPnP A/V Media Server user";
-      };
-
-    users.groups."nut" =
-      { gid = 84; };
-*/
 
   };
 }
