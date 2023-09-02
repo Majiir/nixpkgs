@@ -529,6 +529,9 @@ in
         (cfg.upsmon.settings.SHUTDOWNCMD or null)
         (cfg.upsmon.settings.POWERDOWNFLAG or null)
       ];
+      reloadTriggers = [
+        createUpsmonConf
+      ];
     };
 
     systemd.services.upsd = let
@@ -554,6 +557,9 @@ in
       environment.NUT_STATEPATH = "/var/lib/nut";
       restartTriggers = [
         config.environment.etc."nut/upsd.conf".source
+      ];
+      reloadTriggers = [
+        createUpsdUsers
       ];
     };
 
