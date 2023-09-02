@@ -536,7 +536,7 @@ in
         LoadCredential = mapAttrsToList (name: monitor: "upsmon_password_${name}:${monitor.passwordFile}") cfg.upsmon.monitor;
       };
       environment.NUT_CONFPATH = "%t/${serviceConfig.RuntimeDirectory}";
-      environment.NUT_STATEPATH = "/var/lib/nut";
+      environment.NUT_STATEPATH = "%t/${serviceConfig.RuntimeDirectory}";
       restartTriggers = [
         (cfg.upsmon.settings.SHUTDOWNCMD or null)
         (cfg.upsmon.settings.POWERDOWNFLAG or null)
@@ -572,7 +572,7 @@ in
         LoadCredential = mapAttrsToList (name: user: "upsdusers_password_${name}:${user.passwordFile}") cfg.users;
       };
       environment.NUT_CONFPATH = "%t/${serviceConfig.RuntimeDirectory}";
-      environment.NUT_STATEPATH = "/var/lib/nut";
+      environment.NUT_STATEPATH = "%t/${serviceConfig.RuntimeDirectory}";
       restartTriggers = [
         upsdConf
       ];
@@ -591,9 +591,10 @@ in
         RemainAfterExit = true;
         # TODO: replace 'root' by another username.
         ExecStart = "${pkgs.nut}/bin/upsdrvctl -u root start";
+        RuntimeDirectory = "nut/upsdrv";
       };
       environment.NUT_CONFPATH = "/etc/nut";
-      environment.NUT_STATEPATH = "/var/lib/nut";
+      environment.NUT_STATEPATH = "%t/${serviceConfig.RuntimeDirectory}";
     };
 
     environment.etc = {
