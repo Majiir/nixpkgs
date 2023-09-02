@@ -507,8 +507,8 @@ in
 
     systemd.services.upsmon = let
       secrets = mapAttrsToList (name: monitor: "upsmon_password_${name}") cfg.upsmon.monitor;
-      createUpsmonConf = installSecrets upsmonConf "/run/nut/upsmon.conf" secrets;
-    in {
+      createUpsmonConf = installSecrets upsmonConf "$RUNTIME_DIRECTORY/upsmon.conf" secrets;
+    in rec {
       enable = cfg.upsmon.enable;
       description = "Uninterruptible Power Supplies (Monitor)";
       after = [ "network.target" ];
@@ -521,9 +521,10 @@ in
           "${createUpsmonConf}"
           "${pkgs.nut}/sbin/upsmon -c reload"
         ];
+        RuntimeDirectory = "nut/upsmon";
         LoadCredential = mapAttrsToList (name: monitor: "upsmon_password_${name}:${monitor.passwordFile}") cfg.upsmon.monitor;
       };
-      environment.NUT_CONFPATH = "/etc/nut";
+      environment.NUT_CONFPATH = "%t/${serviceConfig.RuntimeDirectory}";
       environment.NUT_STATEPATH = "/var/lib/nut";
       restartTriggers = [
         (cfg.upsmon.settings.SHUTDOWNCMD or null)
@@ -536,8 +537,8 @@ in
 
     systemd.services.upsd = let
       secrets = mapAttrsToList (name: user: "upsdusers_password_${name}") cfg.users;
-      createUpsdUsers = installSecrets upsdUsers "/run/nut/upsd.users" secrets;
-    in {
+      createUpsdUsers = installSecrets upsdUsers "$RUNTIME_DIRECTORY/upsd.users" secrets;
+    in rec {
       enable = cfg.upsd.enable;
       description = "Uninterruptible Power Supplies (Daemon)";
       after = [ "network.target" "upsmon.service" ];
@@ -551,9 +552,10 @@ in
           "${createUpsdUsers}"
           "${pkgs.nut}/sbin/upsd -c reload"
         ];
+        RuntimeDirectory = "nut/upsd";
         LoadCredential = mapAttrsToList (name: user: "upsdusers_password_${name}:${user.passwordFile}") cfg.users;
       };
-      environment.NUT_CONFPATH = "/etc/nut";
+      environment.NUT_CONFPATH = "%t/${serviceConfig.RuntimeDirectory}";
       environment.NUT_STATEPATH = "/var/lib/nut";
       restartTriggers = [
         config.environment.etc."nut/upsd.conf".source
