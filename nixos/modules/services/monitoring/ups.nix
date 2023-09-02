@@ -265,7 +265,7 @@ let
         description = lib.mdDoc ''
           The full path to a file containing the password from
           `upsd.users` for accessing this UPS. The password file
-          is read on service start.
+          is read on service start and reload.
           See `upsmon.conf` for details.
         '';
       };
@@ -343,7 +343,7 @@ let
         type = types.str;
         description = lib.mdDoc ''
           The full path to a file that contains the user's (clear text)
-          password. The password file is read on service start.
+          password. The password file is read on service start and reload.
         '';
       };
 
