@@ -581,7 +581,7 @@ in
       ];
     };
 
-    systemd.services.upsdrv = {
+    systemd.services.upsdrv = rec {
       enable = cfg.upsd.enable;
       description = "Uninterruptible Power Supplies (Register all UPS)";
       after = [ "upsd.service" ];
