@@ -82,6 +82,17 @@ let
     ]);
   in concatStringsSep "\n\n" (mapAttrsToList userConfig cfg.users));
 
+  upsdConf = pkgs.writeText "upsd.conf" ''
+    ${concatStringsSep "\n" (forEach cfg.upsd.listen (listen: "LISTEN ${listen.address} ${toString listen.port}"))}
+    ${cfg.upsd.extraConfig}
+  '';
+
+  upsConf = pkgs.writeText "ups.conf" ''
+    maxstartdelay = ${toString cfg.maxStartDelay}
+
+    ${concatStringsSep "\n\n" (forEach (attrValues cfg.ups) (ups: ups.summary))}
+  '';
+
 
   upsOptions = {name, config, ...}:
   {
@@ -537,7 +548,12 @@ in
 
     systemd.services.upsd = let
       secrets = mapAttrsToList (name: user: "upsdusers_password_${name}") cfg.users;
-      createUpsdUsers = installSecrets upsdUsers "$RUNTIME_DIRECTORY/upsd.users" secrets;
+      createUpsdConfigs = let
+      in pkgs.writeShellScript "createUpsdConfigs.sh" ''
+        ln -s ${upsConf} "$RUNTIME_DIRECTORY/ups.conf"
+        ln -s ${upsdConf} "$RUNTIME_DIRECTORY/upsd.conf"
+        ${installSecrets upsdUsers "$RUNTIME_DIRECTORY/upsd.users" secrets}
+      '';
     in rec {
       enable = cfg.upsd.enable;
       description = "Uninterruptible Power Supplies (Daemon)";
@@ -545,11 +561,11 @@ in
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
         Type = "forking";
-        ExecStartPre = "${createUpsdUsers}";
+        ExecStartPre = "${createUpsdConfigs}";
         # TODO: replace 'root' by another username.
         ExecStart = "${pkgs.nut}/sbin/upsd -u root";
         ExecReload = [
-          "${createUpsdUsers}"
+          "${createUpsdConfigs}"
           "${pkgs.nut}/sbin/upsd -c reload"
         ];
         RuntimeDirectory = "nut/upsd";
@@ -558,10 +574,10 @@ in
       environment.NUT_CONFPATH = "%t/${serviceConfig.RuntimeDirectory}";
       environment.NUT_STATEPATH = "/var/lib/nut";
       restartTriggers = [
-        config.environment.etc."nut/upsd.conf".source
+        upsdConf
       ];
       reloadTriggers = [
-        createUpsdUsers
+        createUpsdConfigs
       ];
     };
 
@@ -585,17 +601,7 @@ in
         ''
           MODE = ${cfg.mode}
         '';
-      "nut/ups.conf".source = pkgs.writeText "ups.conf"
-        ''
-          maxstartdelay = ${toString cfg.maxStartDelay}
-
-          ${concatStringsSep "\n\n" (forEach (attrValues cfg.ups) (ups: ups.summary))}
-        '';
-      "nut/upsd.conf".source = pkgs.writeText "upsd.conf"
-        ''
-          ${concatStringsSep "\n" (forEach cfg.upsd.listen (listen: "LISTEN ${listen.address} ${toString listen.port}"))}
-          ${cfg.upsd.extraConfig}
-        '';
+      "nut/ups.conf".source = upsConf;
       "nut/upssched.conf".source = cfg.schedulerRules;
     };
 
