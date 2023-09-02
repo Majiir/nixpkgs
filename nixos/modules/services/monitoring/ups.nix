@@ -522,6 +522,10 @@ in
       };
       environment.NUT_CONFPATH = "/etc/nut";
       environment.NUT_STATEPATH = "/var/lib/nut";
+      restartTriggers = [
+        (cfg.upsmon.settings.SHUTDOWNCMD or null)
+        (cfg.upsmon.settings.POWERDOWNFLAG or null)
+      ];
     };
 
     systemd.services.upsd = let
