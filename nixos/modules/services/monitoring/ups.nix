@@ -517,7 +517,10 @@ in
         Type = "forking";
         ExecStartPre = "${createUpsmonConf}";
         ExecStart = "${pkgs.nut}/sbin/upsmon";
-        ExecReload = "${pkgs.nut}/sbin/upsmon -c reload";
+        ExecReload = [
+          "${createUpsmonConf}"
+          "${pkgs.nut}/sbin/upsmon -c reload"
+        ];
         LoadCredential = mapAttrsToList (name: monitor: "upsmon_password_${name}:${monitor.passwordFile}") cfg.upsmon.monitor;
       };
       environment.NUT_CONFPATH = "/etc/nut";
@@ -541,7 +544,10 @@ in
         ExecStartPre = "${createUpsdUsers}";
         # TODO: replace 'root' by another username.
         ExecStart = "${pkgs.nut}/sbin/upsd -u root";
-        ExecReload = "${pkgs.nut}/sbin/upsd -c reload";
+        ExecReload = [
+          "${createUpsdUsers}"
+          "${pkgs.nut}/sbin/upsd -c reload"
+        ];
         LoadCredential = mapAttrsToList (name: user: "upsdusers_password_${name}:${user.passwordFile}") cfg.users;
       };
       environment.NUT_CONFPATH = "/etc/nut";
