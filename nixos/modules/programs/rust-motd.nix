@@ -15,7 +15,7 @@ in {
         Whether to let `openssh` print the
         result when entering a new `ssh`-session.
         By default either nothing or a static file defined via
-        [](#opt-users.motd) is printed. Because of that,
+        [](#opt-security.pam.motd.text) is printed. Because of that,
         the latter option is incompatible with this module.
       '';
     };
@@ -40,9 +40,9 @@ in {
   };
   config = mkIf cfg.enable {
     assertions = [
-      { assertion = config.users.motd == null;
+      { assertion = config.security.pam.motd.text == null;
         message = ''
-          `programs.rust-motd` is incompatible with `users.motd`!
+          `programs.rust-motd` is incompatible with `security.pam.motd.text`!
         '';
       }
     ];

@@ -4,7 +4,7 @@ import ./make-test-python.nix ({ ... }:
 
   nodes.machine = { pkgs, ... }: {
     imports = [ ./common/user-account.nix ];
-    security.pam.enableFscrypt = true;
+    security.pam.fscrypt.enable = true;
   };
 
   testScript = ''

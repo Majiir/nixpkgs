@@ -336,7 +336,7 @@ in {
       };
     };
 
-    security.pam.loginLimits = [
+    security.pam.limits.limits = [
       { domain = "netdata"; type = "soft"; item = "nofile"; value = "10000"; }
       { domain = "netdata"; type = "hard"; item = "nofile"; value = "30000"; }
     ];

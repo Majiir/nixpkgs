@@ -109,8 +109,8 @@ let
       };
 
       otpwAuth = mkOption {
-        default = config.security.pam.enableOTPW;
-        defaultText = literalExpression "config.security.pam.enableOTPW";
+        default = config.security.pam.otpw.enable;
+        defaultText = literalExpression "config.security.pam.otpw.enable";
         type = types.bool;
         description = lib.mdDoc ''
           If set, the OTPW system will be used (if
@@ -322,7 +322,7 @@ let
         type = limitsType;
         description = lib.mdDoc ''
           Attribute set describing resource limits.  Defaults to the
-          value of {option}`security.pam.loginLimits`.
+          value of {option}`security.pam.limits.limits`.
           The meaning of the values is explained in {manpage}`limits.conf(5)`.
         '';
       };
@@ -468,7 +468,7 @@ let
     config = {
       name = mkDefault name;
       setLoginUid = mkDefault cfg.startSession;
-      limits = mkDefault config.security.pam.loginLimits;
+      limits = mkDefault config.security.pam.limits.limits;
 
       # !!! TODO: move the LDAP stuff to the LDAP module, and the
       # Samba stuff to the Samba module.  This requires that the PAM
@@ -563,8 +563,8 @@ let
           #
           # The same principle applies to systemd-homed
           (optionalString ((cfg.unixAuth || config.services.homed.enable) &&
-            (config.security.pam.enableEcryptfs
-              || config.security.pam.enableFscrypt
+            (config.security.pam.ecryptfs.enable
+              || config.security.pam.fscrypt.enable
               || cfg.pamMount
               || cfg.enableKwallet
               || cfg.enableGnomeKeyring
@@ -580,10 +580,10 @@ let
               optionalString cfg.unixAuth ''
                 auth optional pam_unix.so ${optionalString cfg.allowNullPassword "nullok"} ${optionalString cfg.nodelay "nodelay"} likeauth
               '' +
-              optionalString config.security.pam.enableEcryptfs ''
+              optionalString config.security.pam.ecryptfs.enable ''
                 auth optional ${pkgs.ecryptfs}/lib/security/pam_ecryptfs.so unwrap
               '' +
-              optionalString config.security.pam.enableFscrypt ''
+              optionalString config.security.pam.fscrypt.enable ''
                 auth optional ${pkgs.fscrypt-experimental}/lib/security/pam_fscrypt.so
               '' +
               optionalString cfg.zfs ''
@@ -644,10 +644,10 @@ let
           '' + ''
             password sufficient pam_unix.so nullok yescrypt
           '' +
-          optionalString config.security.pam.enableEcryptfs ''
+          optionalString config.security.pam.ecryptfs.enable ''
             password optional ${pkgs.ecryptfs}/lib/security/pam_ecryptfs.so
           '' +
-          optionalString config.security.pam.enableFscrypt ''
+          optionalString config.security.pam.fscrypt.enable ''
             password optional ${pkgs.fscrypt-experimental}/lib/security/pam_fscrypt.so
           '' +
           optionalString cfg.zfs ''
@@ -702,10 +702,10 @@ let
           optionalString cfg.updateWtmp ''
             session required ${pkgs.pam}/lib/security/pam_lastlog.so silent
           '' +
-          optionalString config.security.pam.enableEcryptfs ''
+          optionalString config.security.pam.ecryptfs.enable ''
             session optional ${pkgs.ecryptfs}/lib/security/pam_ecryptfs.so
           '' +
-          optionalString config.security.pam.enableFscrypt ''
+          optionalString config.security.pam.fscrypt.enable ''
             # Work around https://github.com/systemd/systemd/issues/8598
             # Skips the pam_fscrypt module for systemd-user sessions which do not have a password
             # anyways.
@@ -747,7 +747,7 @@ let
           optionalString (cfg.limits != []) ''
             session required ${pkgs.pam}/lib/security/pam_limits.so conf=${makeLimitsConf cfg.limits}
           '' +
-          optionalString (cfg.showMotd && (config.users.motd != null || config.users.motdFile != null)) ''
+          optionalString (cfg.showMotd && (config.security.pam.motd.text != null || config.security.pam.motd.file != null)) ''
             session optional ${pkgs.pam}/lib/security/pam_motd.so motd=${motd}
           '' +
           optionalString (cfg.enableAppArmor && config.security.apparmor.enable) ''
@@ -828,9 +828,9 @@ let
     };
   }));
 
-  motd = if config.users.motdFile == null
-         then pkgs.writeText "motd" config.users.motd
-         else config.users.motdFile;
+  motd = if config.security.pam.motd.file == null
+         then pkgs.writeText "motd" config.security.pam.motd.text
+         else config.security.pam.motd.file;
 
   makePAMService = name: service:
     { name = "pam.d/${name}";
@@ -843,6 +843,12 @@ in
 
   imports = [
     (mkRenamedOptionModule [ "security" "pam" "enableU2F" ] [ "security" "pam" "u2f" "enable" ])
+    (mkRenamedOptionModule [ "security" "pam" "enableOTPW" ] [ "security" "pam" "otpw" "enable" ])
+    (mkRenamedOptionModule [ "security" "pam" "enableEcryptfs" ] [ "security" "pam" "ecryptfs" "enable" ])
+    (mkRenamedOptionModule [ "security" "pam" "enableFscrypt" ] [ "security" "pam" "fscrypt" "enable" ])
+    (mkRenamedOptionModule [ "security" "pam" "loginLimits" ] [ "security" "pam" "limits" "limits" ])
+    (mkRenamedOptionModule [ "users" "motd" ] [ "security" "pam" "motd" "text" ])
+    (mkRenamedOptionModule [ "users" "motdFile" ] [ "security" "pam" "motd" "file" ])
     (mkRemovedOptionModule [ "security" "pam" "enableSSHAgentAuth" ] ''
       TO PREVENT BEING LOCKED OUT OF YOUR SYSTEM, READ THE FOLLOWING CAREFULLY:
 
@@ -874,7 +880,7 @@ in
 
   options = {
 
-    security.pam.loginLimits = mkOption {
+    security.pam.limits.limits = mkOption {
       default = [];
       type = limitsType;
       example =
@@ -966,7 +972,7 @@ in
       '';
     };
 
-    security.pam.enableOTPW = mkEnableOption (lib.mdDoc "the OTPW (one-time password) PAM module");
+    security.pam.otpw.enable = mkEnableOption (lib.mdDoc "the OTPW (one-time password) PAM module");
 
     security.pam.dp9ik = {
       enable = mkEnableOption (
@@ -1343,8 +1349,8 @@ in
       };
     };
 
-    security.pam.enableEcryptfs = mkEnableOption (lib.mdDoc "eCryptfs PAM module (mounting ecryptfs home directory on login)");
-    security.pam.enableFscrypt = mkEnableOption (lib.mdDoc ''
+    security.pam.ecryptfs.enable = mkEnableOption (lib.mdDoc "eCryptfs PAM module (mounting ecryptfs home directory on login)");
+    security.pam.fscrypt.enable = mkEnableOption (lib.mdDoc ''
       Enables fscrypt to automatically unlock directories with the user's login password.
 
       This also enables a service at security.pam.services.fscrypt which is used by
@@ -1353,14 +1359,14 @@ in
       adjust this PAM service.
     '');
 
-    users.motd = mkOption {
+    security.pam.motd.text = mkOption {
       default = null;
       example = "Today is Sweetmorn, the 4th day of The Aftermath in the YOLD 3178.";
       type = types.nullOr types.lines;
       description = lib.mdDoc "Message of the day shown to users when they log in.";
     };
 
-    users.motdFile = mkOption {
+    security.pam.motd.file = mkOption {
       default = null;
       example = "/etc/motd";
       type = types.nullOr types.path;
@@ -1374,9 +1380,9 @@ in
   config = {
     assertions = [
       {
-        assertion = config.users.motd == null || config.users.motdFile == null;
+        assertion = config.security.pam.motd.text == null || config.security.pam.motd.file == null;
         message = ''
-          Only one of users.motd and users.motdFile can be set.
+          Only one of security.pam.motd.text and security.pam.motd.file can be set.
         '';
       }
       {
@@ -1394,13 +1400,13 @@ in
       ++ optional config.services.kanidm.enablePam pkgs.kanidm
       ++ optional config.services.sssd.enable pkgs.sssd
       ++ optionals config.security.pam.krb5.enable [pam_krb5 pam_ccreds]
-      ++ optionals config.security.pam.enableOTPW [ pkgs.otpw ]
+      ++ optionals config.security.pam.otpw.enable [ pkgs.otpw ]
       ++ optionals config.security.pam.oath.enable [ pkgs.oath-toolkit ]
       ++ optionals config.security.pam.p11.enable [ pkgs.pam_p11 ]
-      ++ optionals config.security.pam.enableFscrypt [ pkgs.fscrypt-experimental ]
+      ++ optionals config.security.pam.fscrypt.enable [ pkgs.fscrypt-experimental ]
       ++ optionals config.security.pam.u2f.enable [ pkgs.pam_u2f ];
 
-    boot.supportedFilesystems = optionals config.security.pam.enableEcryptfs [ "ecryptfs" ];
+    boot.supportedFilesystems = optionals config.security.pam.ecryptfs.enable [ "ecryptfs" ];
 
     security.wrappers = {
       unix_chkpwd = {
@@ -1439,7 +1445,7 @@ in
            it complains "Cannot create session: Already running in a
            session". */
         runuser-l = { rootOK = true; unixAuth = false; };
-      } // optionalAttrs (config.security.pam.enableFscrypt) {
+      } // optionalAttrs (config.security.pam.fscrypt.enable) {
         # Allow fscrypt to verify login passphrase
         fscrypt = {};
       };
@@ -1506,10 +1512,10 @@ in
       optionalString (isEnabled (cfg: cfg.otpwAuth)) ''
         mr ${pkgs.otpw}/lib/security/pam_otpw.so,
       '' +
-      optionalString config.security.pam.enableEcryptfs ''
+      optionalString config.security.pam.ecryptfs.enable ''
         mr ${pkgs.ecryptfs}/lib/security/pam_ecryptfs.so,
       '' +
-      optionalString config.security.pam.enableFscrypt ''
+      optionalString config.security.pam.fscrypt.enable ''
         mr ${pkgs.fscrypt-experimental}/lib/security/pam_fscrypt.so,
       '' +
       optionalString (isEnabled (cfg: cfg.pamMount)) ''
