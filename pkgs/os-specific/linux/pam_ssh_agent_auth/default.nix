@@ -25,19 +25,15 @@ stdenv.mkDerivation rec {
     # specified in the file= option.
     ./multiple-key-files.patch
     ./edcsa-crash-fix.patch
+
+    (fetchpatch {
+      name = "fix-openssl-headers-match.patch";
+      url = "https://github.com/jbeverly/pam_ssh_agent_auth/commit/674f1b017e5cf299334aff6000fb67c52b2b8934.patch";
+      sha256 = "sha256-XxSThDtw+licTmsN7BxrpAMyZNJicX+xEM+UiJONipY=";
+    })
   ];
 
   configureFlags = [
-    # It's not clear to me why this is necessary, but without it, you see:
-    #
-    # checking OpenSSL header version... 1010108f (OpenSSL 1.1.1h  22 Sep 2020)
-    # checking OpenSSL library version... 1010108f (OpenSSL 1.1.1h  22 Sep 2020)
-    # checking whether OpenSSL's headers match the library... no
-    # configure: WARNING: Your OpenSSL headers do not match your
-    # library. Check config.log for details.
-    #
-    # ...despite the fact that clearly the values match
-    "--without-openssl-header-check"
     # Make sure it can find ed25519-donna
     "--with-cflags=-I$PWD"
   ];
