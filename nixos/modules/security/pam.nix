@@ -1064,7 +1064,9 @@ in
       };
 
       settings = mkOption {
+        # TODO
         description = lib.mdDoc ''
+          TODO TODO TODO
         '';
 
         type = types.submodule {
