@@ -880,6 +880,23 @@ in
 
   options = {
 
+
+    # TODO: Settings
+
+    # - need a settings option defined for each module (incl. ones that currently have no global options)
+    # - need defaults assignable per module
+    # - need option renames for the currently configurable options
+    # - need config expressions for options that are too complex/high-level to go to settings directly
+    
+
+
+    # TODO: when we get to `settings`, we can move the existing module-arguments into the default val for the settings option!
+
+    # TODO
+    # - this is pam_limits, which does take options
+    # - these limits are default values for the per-service limits config.
+    # - so, if we want to change to settings, maybe we need to also rework the per-service option to take settings.
+    # - we should apply the same treatment to any other service-level options that affect module-arguments.
     security.pam.limits.limits = mkOption {
       default = [];
       type = limitsType;
