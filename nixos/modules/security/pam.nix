@@ -554,9 +554,9 @@ let
           (let p11 = config.security.pam.p11; in optionalString cfg.p11Auth ''
             auth ${p11.control} ${pkgs.pam_p11}/lib/security/pam_p11.so ${pkgs.opensc}/lib/opensc-pkcs11.so
           '') +
-          (let u2f = config.security.pam.u2f; in optionalString cfg.u2fAuth (''
-              auth ${u2f.control} ${pkgs.pam_u2f}/lib/security/pam_u2f.so ${formatModuleArguments u2f.settings}
-          '')) +
+          (let u2f = config.security.pam.u2f; in optionalString cfg.u2fAuth ''
+            auth ${u2f.control} ${pkgs.pam_u2f}/lib/security/pam_u2f.so ${formatModuleArguments u2f.settings}
+          '') +
           optionalString cfg.usbAuth ''
             auth sufficient ${pkgs.pam_usb}/lib/security/pam_usb.so
           '' +
@@ -1064,9 +1064,8 @@ in
       };
 
       settings = mkOption {
-        # TODO
         description = lib.mdDoc ''
-          TODO TODO TODO
+          Module arguments for `pam_u2f`. See {manpage}`pam_u2f(8)` for details.
         '';
 
         type = types.submodule {
