@@ -1070,28 +1070,12 @@ in
 
         type = types.submodule {
           freeformType = types.attrsOf types.raw; # TODO: pick a proper freeform type and settingsFormat (maybe just add our thing into lib ... though it's unlikely to be widely used)
-
-          options.authfile = mkOption {
-            default = null;
-            type = with types; nullOr path;
-            description = lib.mdDoc ''
-              By default `pam-u2f` module reads the keys from
-              {file}`$XDG_CONFIG_HOME/Yubico/u2f_keys` (or
-              {file}`$HOME/.config/Yubico/u2f_keys` if XDG variable is
-              not set).
-
-              If you want to change auth file locations or centralize database (for
-              example use {file}`/etc/u2f-mappings`) you can set this
-              option.
-
-              File format is:
-              `username:first_keyHandle,first_public_key: second_keyHandle,second_public_key`
-              This file can be generated using {command}`pamu2fcfg` command.
-
-              More information can be found [here](https://developers.yubico.com/pam-u2f/).
-            '';
-          };
         };
+
+        # TODO: It would be nice to find a pattern where we can keep around the options, but have them be all 'optional'/informational
+        # and still completely generify things under `security.pam.<module>.settings` and `security.pam.services.<service>.<module>`
+
+        # So, instead of a submodule, do we do a sort of option-builder function thing?
 
         default = { };
 
