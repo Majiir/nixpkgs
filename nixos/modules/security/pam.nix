@@ -486,8 +486,13 @@ let
         description = lib.mdDoc "Contents of the PAM service file.";
       };
 
-      rules = genAttrs [ "account" "auth" "password" "session" ] (type: mkOption {
-        type = types.listOf types.submodule {
+      rules = mkOption {
+        description = lib.mdDoc ''
+          PAM rules for this service.
+
+          Attribute keys are the `type` of the rule (one of `account`, `auth`, `password`, `session`). Attribute values are ordered lists of rules.
+        '';
+        type = types.attrsOf (types.listOf types.submodule {
           options = {
             control = mkOption {
               type = types.str;
@@ -522,12 +527,8 @@ let
               '';
             };
           };
-        };
-        description = lib.mdDoc ''
-          Ordered list of `${type}` rules for this service.
-        '';
-      });
-
+        });
+      };
     };
 
     # The resulting /etc/pam.d/* file contents are verified in
