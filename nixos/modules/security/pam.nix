@@ -505,7 +505,6 @@ let
       text = let
         formatRules = type: pipe cfg.rules.${type} [
           (map (rule: "${type} ${rule}"))
-          (map (removeSuffix "\n"))
           (concatStringsSep "\n")
         ];
       in mkDefault ''
