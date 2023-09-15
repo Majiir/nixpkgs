@@ -519,7 +519,7 @@ let
                 See `module-arguments` in {manpage}`pam.conf(5)` for details.
               '';
             };
-            extraArgs = {
+            extraArgs = mkOption {
               type = types.str;
               default = "";
               description = lib.mdDoc ''
