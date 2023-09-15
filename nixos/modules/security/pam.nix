@@ -13,8 +13,9 @@ let
   makeRuleArgs = control: modulePath: args:
     makeRuleExtraArgs control modulePath args "";
 
-  makeRuleExtraArgs = control: modulePath: args: extraArgs:
-    "${control} ${modulePath} ${formatModuleArguments args} ${extraArgs}";
+  makeRuleExtraArgs = control: modulePath: args: extraArgs: {
+    inherit control modulePath args extraArgs;
+  };
 
   # Formats an attrset for use as `module-arguments`. See `man pam.conf`.
   formatModuleArguments = args: concatStringsSep " " (filter (x: x != null) (flip mapAttrsToList args (name: value:
@@ -486,7 +487,42 @@ let
       };
 
       rules = genAttrs [ "account" "auth" "password" "session" ] (type: mkOption {
-        type = types.listOf types.str;
+        type = types.listOf types.submodule {
+          options = {
+            control = mkOption {
+              type = types.str;
+              description = lib.mdDoc ''
+                Indicates the behavior of the PAM-API should the module fail to succeed in its authentication task.
+
+                See `control` in {manpage}`pam.conf(5)` for details.
+              '';
+            };
+            modulePath = mkOption {
+              type = types.path;
+              description = lib.mdDoc ''
+                Full filename of the PAM to be used by the application.
+
+                See `module-path` in {manpage}`pam.conf(5)` for details.
+              '';
+            };
+            args = mkOption {
+              type = types.attrs;
+              default = {};
+              description = lib.mdDoc ''
+                Tokens that can be used to modify the specific behavior of the given PAM. Such arguments will be documented for each individual module.
+
+                See `module-arguments` in {manpage}`pam.conf(5)` for details.
+              '';
+            };
+            extraArgs = {
+              type = types.str;
+              default = "";
+              description = lib.mdDoc ''
+                Arguments appended to the rule verbatim. Used for PAM modules that don't comply with the `module-arguments` standard.
+              '';
+            };
+          };
+        };
         description = lib.mdDoc ''
           Ordered list of `${type}` rules for this service.
         '';
@@ -504,7 +540,7 @@ let
 
       text = let
         formatRules = type: pipe cfg.rules.${type} [
-          (map (rule: "${type} ${rule}"))
+          (map (rule: with rule; "${type} ${control} ${modulePath} ${formatModuleArguments args} ${extraArgs}"))
           (concatStringsSep "\n")
         ];
       in mkDefault ''
