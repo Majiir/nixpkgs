@@ -503,7 +503,7 @@ let
               '';
             };
             modulePath = mkOption {
-              type = types.path;
+              type = types.str;
               description = lib.mdDoc ''
                 Full filename of the PAM to be used by the application.
 
