@@ -492,7 +492,7 @@ let
 
           Attribute keys are the `type` of the rule (one of `account`, `auth`, `password`, `session`). Attribute values are ordered lists of rules.
         '';
-        type = types.attrsOf (types.listOf types.submodule {
+        type = types.attrsOf (types.listOf (types.submodule {
           options = {
             control = mkOption {
               type = types.str;
@@ -527,7 +527,7 @@ let
               '';
             };
           };
-        });
+        }));
       };
     };
 
