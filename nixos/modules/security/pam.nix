@@ -529,11 +529,8 @@ let
           { enable = config.services.kanidm.enablePam; text = ''
             sufficient ${pkgs.kanidm}/lib/pam_kanidm.so ignore_unknown_user
           ''; }
-          { enable = config.services.sssd.enable && cfg.sssdStrictAccess==false; text = ''
-            sufficient ${pkgs.sssd}/lib/security/pam_sss.so
-          ''; }
-          { enable = config.services.sssd.enable && cfg.sssdStrictAccess; text = ''
-            [default=bad success=ok user_unknown=ignore] ${pkgs.sssd}/lib/security/pam_sss.so
+          { enable = config.services.sssd.enable; text = ''
+            ${if cfg.sssdStrictAccess then "[default=bad success=ok user_unknown=ignore]" else "sufficient"} ${pkgs.sssd}/lib/security/pam_sss.so
           ''; }
           { enable = config.security.pam.krb5.enable; text = ''
             sufficient ${pam_krb5}/lib/security/pam_krb5.so
