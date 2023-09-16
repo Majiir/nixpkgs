@@ -13,6 +13,7 @@ let
   makeRuleArgs = control: modulePath: args:
     makeRuleExtraArgs control modulePath args "";
 
+  # TODO: make it so the rule objects can be modified (i.e. with names)
   makeRuleExtraArgs = control: modulePath: args: extraArgs: {
     inherit control modulePath args extraArgs;
   };
@@ -31,6 +32,8 @@ let
         then "[${name}=${replaceStrings ["]"] ["\\]"] formatted}]"
         else "${name}=${formatted}"
   )));
+
+  autoOrder = imap1 (index: rule: rule // { priority = rule.priority or (mkDefault (index * 10)); });
 
   parentConfig = config;
 
@@ -526,6 +529,18 @@ let
                 Arguments appended to the rule verbatim. Used for PAM modules that don't comply with the `module-arguments` standard.
               '';
             };
+            priority = mkOption {
+              type = types.int;
+              default = 2000;
+              description = lib.mdDoc ''
+                Priority for ordering PAM rules. Rules are ordered by ascending priority number.
+
+                Common priority levels:
+                  - 1000: setup/initialization rules
+                  - 2000: default for new rules
+                  - 4000: final/catch-all rules
+              '';
+            };
           };
         }));
       };
@@ -541,6 +556,7 @@ let
 
       text = let
         formatRules = type: pipe cfg.rules.${type} [
+          (sort (a: b: a.priority < b.priority))
           (map (rule: with rule; "${type} ${control} ${modulePath} ${formatModuleArguments args} ${extraArgs}"))
           (concatStringsSep "\n")
         ];
@@ -586,29 +602,45 @@ let
           ) (
             makeRule "[success=ok default=ignore]" "${pkgs.google-guest-oslogin}/lib/security/pam_oslogin_admin.so"
           )] ++
+          # TODO: all the above are equal/default priority
+          # TODO: second-to-last?
           optional config.services.homed.enable (
             makeRule "sufficient" "${config.systemd.package}/lib/security/pam_systemd_home.so"
           ) ++
           # The required pam_unix.so module has to come after all the sufficient modules
           # because otherwise, the account lookup will fail if the user does not exist
           # locally, for example with MySQL- or LDAP-auth.
+          # TODO: last
           singleton (
             makeRule "required" "pam_unix.so"
           );
 
-        auth =
+        # TODO: WIP: autoOrder isn't a long-term sustainable thing, but useful for testing/experimentation.
+        auth = autoOrder (
+          # TODO: this should probably move down
+          # 90
           optional cfg.googleOsLoginAuthentication (
             makeRule "[success=done perm_denied=die default=ignore]" "${pkgs.google-guest-oslogin}/lib/security/pam_oslogin_login.so"
           ) ++
+          # TODO: first
+          # 100
           optional cfg.rootOK (
             makeRule "sufficient" "pam_rootok.so"
           ) ++
+          # TODO: second
+          # 200
           optional cfg.requireWheel (
             makeRuleArgs "required" "pam_wheel.so" { use_uid = true; }
           ) ++
+          # TODO: third?
+          # 300
           optional cfg.logFailures (
             makeRule "required" "pam_faillock.so"
           ) ++
+
+          # TODO: now come a bunch of optional sufficient auth methods
+          # are these just alternatives to pam_unix? should they be treated the same?
+          # TODO: some of them should be moved because they're actually 2FA methods
           optional cfg.mysqlAuth (
             makeRuleArgs "sufficient" "${pkgs.pam_mysql}/lib/security/pam_mysql.so" { config_file = "/etc/security/pam_mysql.conf"; }
           ) ++
@@ -662,6 +694,12 @@ let
           # We use try_first_pass the second time to avoid prompting password twice.
           #
           # The same principle applies to systemd-homed
+
+          # TODO: change up how these extra pam_unix/systemd-homed rule get added.
+          # it could be done like this:
+          # - specify a set of rules that *require* those optional steps
+          # - see if any of those rules are enabled (by moving 'enable' flag into the rule)
+
           (optionals ((cfg.unixAuth || config.services.homed.enable) &&
             (config.security.pam.enableEcryptfs
               || config.security.pam.enableFscrypt
@@ -674,9 +712,11 @@ let
               || cfg.duoSecurity.enable
               || cfg.zfs))
             (
+              # TODO: first (to allow authentication using the encrypted data)
               optional config.services.homed.enable (
                 makeRule "optional" "${config.systemd.package}/lib/security/pam_systemd_home.so"
               ) ++
+              # TODO: second (to prompt for password first)
               optional cfg.unixAuth (
                 makeRuleArgs "optional" "pam_unix.so" {
                   nullok = cfg.allowNullPassword;
@@ -684,30 +724,51 @@ let
                   likeauth = true;
                 }
               ) ++
+
+              # TODO: figure out what these optional rules do & how they should rank
+
+              # TODO: uses login password to unwrap an encrypted mount passphrase
               optional config.security.pam.enableEcryptfs (
                 makeRuleArgs "optional" "${pkgs.ecryptfs}/lib/security/pam_ecryptfs.so" { unwrap = true; }
               ) ++
+              # TODO: uses login password to unwrap an encrypted mount passphrase
               optional config.security.pam.enableFscrypt (
                 makeRule "optional" "${pkgs.fscrypt-experimental}/lib/security/pam_fscrypt.so"
               ) ++
+              # TODO: uses login password to unwrap an encrypted mount passphrase
               optional cfg.zfs (
                 makeRuleArgs "optional" "${config.boot.zfs.package}/lib/security/pam_zfs_key.so" { inherit (config.security.pam.zfs) homes; }
               ) ++
+              # TODO: uses the fact we logged in to mount a directory
+              # Interestingly:
+              # > When  "sufficient"  is  used  in  the second column, you must make sure that pam_mount is
+              # > added before this entry. Otherwise pam_mount will not get executed should a previous PAM
+              # > module succeed.
+              # so that's interesting given all the earlier 'sufficient' login steps.
+              # TODO: rework them to all follow a similar pattern as pam_unix, or modify pam_unix to a compatible pattern (e.g. requisite? required? just reorder things?)
               optional cfg.pamMount (
                 makeRuleArgs "optional" "${pkgs.pam_mount}/lib/security/pam_mount.so" { disable_interactive = true; }
               ) ++
+              # TODO: unlocks kwallet using user/pass at login
               optional cfg.enableKwallet (
                 makeRuleArgs "optional" "${pkgs.plasma5Packages.kwallet-pam}/lib/security/pam_kwallet5.so" { kwalletd = "${pkgs.plasma5Packages.kwallet.bin}/bin/kwalletd5"; }
               ) ++
+              # TODO: "stores it [the password] for later use" :sus:
               optional cfg.enableGnomeKeyring (
                 makeRule "optional" "${pkgs.gnome.gnome-keyring}/lib/security/pam_gnome_keyring.so"
               ) ++
+              # TODO: unlocks gnupg with password
               optional cfg.gnupg.enable (
                 makeRuleArgs "optional" "${pkgs.pam_gnupg}/lib/security/pam_gnupg.so" { store-only = cfg.gnupg.storeOnly; }
               ) ++
+
+              # TODO: adjusts failure delay to the specified value. no reason to be above/below any of the other optional ones - same priority.
               optional cfg.failDelay.enable (
                 makeRuleArgs "optional" "${pkgs.pam}/lib/security/pam_faildelay.so" { inherit (cfg.failDelay) delay; }
               ) ++
+
+              # TODO: these look like 2FA rules which should get roughly equal priority. but they should probably come after all the special unlock ones.
+              # ...... or *before* them? after all, second factor hasn't been provided, so don't unlock shit?
               optional cfg.googleAuthenticator.enable (
                 makeRuleArgs "required" "${pkgs.google-authenticator}/lib/security/pam_google_authenticator.so" { no_increment_hotp = true; }
               ) ++
@@ -715,9 +776,14 @@ let
                 makeRule "required" "${pkgs.duo-unix}/lib/security/pam_duo.so"
               )
             )) ++
+
+          # TODO: first (because we want it present "to allow authentication using the encrypted data")
           optional config.services.homed.enable (
             makeRule "sufficient" "${config.systemd.package}/lib/security/pam_systemd_home.so"
           ) ++
+
+          # TODO: second
+          # TODO: this should really be further down, right? some of these other things are basically second factors.
           optional cfg.unixAuth (
             makeRuleArgs "sufficient" "pam_unix.so" {
               nullok = cfg.allowNullPassword;
@@ -726,18 +792,29 @@ let
               try_first_pass = true;
             }
           ) ++
+          # TODO: this is an additional password auth thing.
+          # maybe makes sense to be after unix auth, since it's a fallback type thing.
           optional cfg.otpwAuth (
             makeRule "sufficient" "${pkgs.otpw}/lib/security/pam_otpw.so"
           ) ++
+          # TODO: authenticates user; basically an alternative to unix auth.
+          # not sure it makes sense for this to come after otpw.
+          # also not sure it makes sense for it to be at a different level than unixauth?
+          # but maybe the idea is that, again, it's a "fallback" for unix auth.
+          # after all, it is configured with use_first_pass=true, meaning it won't ever prompt for its own
+          # password, and it will always use the existing password.
           optional use_ldap (
             makeRuleArgs "sufficient" "${pam_ldap}/lib/security/pam_ldap.so" { use_first_pass = true; }
           ) ++
+          # TODO: same deal as pam_ldap; should be at same level as it
           optional config.services.kanidm.enablePam (
             makeRuleArgs "sufficient" "${pkgs.kanidm}/lib/pam_kanidm.so" { ignore_unknown_user = true; use_first_pass = true; }
           ) ++
+          # TODO: same as pam_ldap
           optional config.services.sssd.enable (
             makeRuleArgs "sufficient" "${pkgs.sssd}/lib/security/pam_sss.so" { use_first_pass = true; }
           ) ++
+          # TODO: looks same as pam_ldap? some complexity here with pam_ccreds.
           optionals config.security.pam.krb5.enable [(
             makeRuleArgs "[default=ignore success=1 service_err=reset]" "${pam_krb5}/lib/security/pam_krb5.so" { use_first_pass = true; }
           ) (
@@ -745,9 +822,11 @@ let
           ) (
             makeRuleArgs "sufficient" "${pam_ccreds}/lib/security/pam_ccreds.so" { action = "store"; use_first_pass = true; }
           )] ++
+
+          # TODO: needs to come last
           singleton (
             makeRule "required" "pam_deny.so"
-          );
+          ));
 
         password =
           optional config.services.homed.enable (
