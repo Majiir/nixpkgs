@@ -464,46 +464,72 @@ let
         description = lib.mdDoc ''
           PAM rules for this service.
 
-          Attribute keys are the `type` of the rules (one of `account`, `auth`, `password`, `session`). Attribute values are ordered lists of rules.
+          Attribute keys are the `type` of the rules (one of `account`, `auth`, `password`, `session`).
         '';
-        type = types.attrsOf (types.listOf (types.submodule {
-          options = {
-            name = mkOption {
-              type = types.str;
-              description = lib.mdDoc ''
-                Name of this rule.
-              '';
-            };
-            enable = mkOption {
-              type = types.bool;
-              default = true;
-              description = lib.mdDoc ''
-                Whether this rule is added to the PAM service config file.
-              '';
-            };
-            control = mkOption {
-              type = types.str;
-              description = lib.mdDoc ''
-                Indicates the behavior of the PAM-API should the module fail to succeed in its authentication task. See `control` in {manpage}`pam.conf(5)` for details.
-              '';
-            };
-            modulePath = mkOption {
-              type = types.str;
-              description = lib.mdDoc ''
-                Either the full filename of the PAM to be used by the application (it begins with a '/'), or a relative pathname from the default module location. See `module-path` in {manpage}`pam.conf(5)` for details.
-              '';
-            };
-            args = mkOption {
-              type = types.attrs;
-              default = {};
-              description = lib.mdDoc ''
-                Tokens that can be used to modify the specific behavior of the given PAM. Such arguments will be documented for each individual module. See `module-arguments` in {manpage}`pam.conf(5)` for details.
+        type = types.attrsOf (types.submodule {
+          options.rules = mkOption {
+            description = lib.mdDoc ''
+              PAM rules for this service and type.
 
-                Boolean values render just the key if true, and nothing if false. Null values are ignored. All other values are rendered as key-value pairs.
-              '';
-            };
+              Attribute keys are the name of each rule.
+            '';
+            type = types.attrsOf (types.submodule {
+              options = {
+                enable = mkOption {
+                  type = types.bool;
+                  default = true;
+                  description = lib.mdDoc ''
+                    Whether this rule is added to the PAM service config file.
+                  '';
+                };
+                order = mkOption {
+                  # This option is experimental and subject to breakage. (See description.)
+                  visible = false;
+
+                  type = types.int;
+                  default = 1000;
+                  description = lib.mdDoc ''
+                    Order of this rule in the service file. Rules are arranged in ascending order of this value.
+
+                    ::: {.warning}
+                    The `order` values for the built-in rules are subject to change. If you assign a constant value to this option, a system update could silently reorder your rule. You could be locked out of your system, or your system could be left wide open.
+
+                    Always exercise caution with this option because it is experimental and subject to breakage. If you must use it, set it to a relative offset from another rule's `order` value:
+
+                    ```nix
+                    {
+                      security.pam.services.login.types.auth.rules.foo.order =
+                        config.security.pam.services.login.types.auth.rules.unix.order + 1;
+                    }
+                    ```
+                    :::
+                  '';
+                };
+                control = mkOption {
+                  type = types.str;
+                  description = lib.mdDoc ''
+                    Indicates the behavior of the PAM-API should the module fail to succeed in its authentication task. See `control` in {manpage}`pam.conf(5)` for details.
+                  '';
+                };
+                modulePath = mkOption {
+                  type = types.str;
+                  description = lib.mdDoc ''
+                    Either the full filename of the PAM to be used by the application (it begins with a '/'), or a relative pathname from the default module location. See `module-path` in {manpage}`pam.conf(5)` for details.
+                  '';
+                };
+                args = mkOption {
+                  type = types.attrs;
+                  default = {};
+                  description = lib.mdDoc ''
+                    Tokens that can be used to modify the specific behavior of the given PAM. Such arguments will be documented for each individual module. See `module-arguments` in {manpage}`pam.conf(5)` for details.
+
+                    Boolean values render just the key if true, and nothing if false. Null values are ignored. All other values are rendered as key-value pairs.
+                  '';
+                };
+              };
+            });
           };
-        }));
+        });
       };
 
     };
@@ -531,8 +557,10 @@ let
               then "[${name}=${replaceStrings ["]"] ["\\]"] formatted}]"
               else "${name}=${formatted}"
         )));
-        formatRules = type: pipe cfg.types.${type} [
+        formatRules = type: pipe cfg.types.${type}.rules [
+          attrValues
           (filter (rule: rule.enable))
+          (sort (a: b: a.order < b.order))
           (map (rule: "${type} ${rule.control} ${rule.modulePath} ${formatModuleArguments rule.args}"))
           (map (removeSuffix " "))
           (concatStringsSep "\n")
@@ -554,8 +582,15 @@ let
       # !!! TODO: move the LDAP stuff to the LDAP module, and the
       # Samba stuff to the Samba module.  This requires that the PAM
       # module provides the right hooks.
-      types = {
-        account = [
+      types = let
+        autoOrderRules = flip pipe [
+          (imap1 (index: rule: rule // { order = mkDefault (1000 + index * 10); } ))
+          (map (rule: nameValuePair rule.name (removeAttrs rule [ "name" ])))
+          listToAttrs
+          (rules: { inherit rules; })
+        ];
+      in {
+        account = autoOrderRules [
           { name = "ldap"; enable = use_ldap; control = "sufficient"; modulePath = "${pam_ldap}/lib/security/pam_ldap.so"; }
           { name = "mysql"; enable = cfg.mysqlAuth; control = "sufficient"; modulePath = "${pkgs.pam_mysql}/lib/security/pam_mysql.so"; args = {
             config_file = "/etc/security/pam_mysql.conf";
@@ -574,7 +609,7 @@ let
           { name = "unix"; control = "required"; modulePath = "pam_unix.so"; }
         ];
 
-        auth = [
+        auth = autoOrderRules ([
           { name = "oslogin_login"; enable = cfg.googleOsLoginAuthentication; control = "[success=done perm_denied=die default=ignore]"; modulePath = "${pkgs.google-guest-oslogin}/lib/security/pam_oslogin_login.so"; }
           { name = "rootok"; enable = cfg.rootOK; control = "sufficient"; modulePath = "pam_rootok.so"; }
           { name = "wheel"; enable = cfg.requireWheel; control = "required"; modulePath = "pam_wheel.so"; args = {
@@ -697,9 +732,9 @@ let
             use_first_pass = true;
           }; }
           { name = "deny"; control = "required"; modulePath = "pam_deny.so"; }
-        ];
+        ]);
 
-        password = [
+        password = autoOrderRules [
           { name = "systemd_home"; enable = config.services.homed.enable; control = "sufficient"; modulePath = "${config.systemd.package}/lib/security/pam_systemd_home.so"; }
           { name = "unix"; control = "sufficient"; modulePath = "pam_unix.so"; args = {
             nullok = true;
@@ -725,7 +760,7 @@ let
           }; }
         ];
 
-        session = [
+        session = autoOrderRules [
           { name = "env"; enable = cfg.setEnvironment; control = "required"; modulePath = "pam_env.so"; args = {
             conffile = "/etc/pam/environment";
             readenv = 0;
