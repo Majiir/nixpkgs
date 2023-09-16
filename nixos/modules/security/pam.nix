@@ -460,6 +460,15 @@ let
         description = lib.mdDoc "Contents of the PAM service file.";
       };
 
+      types = mkOption {
+        description = lib.mdDoc ''
+          PAM rules for this service.
+
+          Attribute keys are the `type` of the rules (one of `account`, `auth`, `password`, `session`). Attribute values are lines of rules.
+        '';
+        type = types.attrsOf types.lines;
+      };
+
     };
 
     # The resulting /etc/pam.d/* file contents are verified in
@@ -470,14 +479,25 @@ let
       setLoginUid = mkDefault cfg.startSession;
       limits = mkDefault config.security.pam.loginLimits;
 
+      text = mkDefault ''
+        # Account management.
+        ${cfg.types."account"}
+
+        # Authentication management.
+        ${cfg.types."auth"}
+
+        # Password management.
+        ${cfg.types."password"}
+
+        # Session management.
+        ${cfg.types."session"}
+      '';
+
       # !!! TODO: move the LDAP stuff to the LDAP module, and the
       # Samba stuff to the Samba module.  This requires that the PAM
       # module provides the right hooks.
-      text = mkDefault
-        (
-          ''
-            # Account management.
-          '' +
+      types = {
+        account =
           optionalString use_ldap ''
             account sufficient ${pam_ldap}/lib/security/pam_ldap.so
           '' +
@@ -508,9 +528,9 @@ let
           # locally, for example with MySQL- or LDAP-auth.
           ''
             account required pam_unix.so
+          '';
 
-            # Authentication management.
-          '' +
+        auth =
           optionalString cfg.googleOsLoginAuthentication ''
             auth [success=done perm_denied=die default=ignore] ${pkgs.google-guest-oslogin}/lib/security/pam_oslogin_login.so
           '' +
@@ -636,9 +656,9 @@ let
           '' +
           ''
             auth required pam_deny.so
+          '';
 
-            # Password management.
-          '' +
+        password =
           optionalString config.services.homed.enable ''
             password sufficient ${config.systemd.package}/lib/security/pam_systemd_home.so
           '' + ''
@@ -673,11 +693,9 @@ let
           '' +
           optionalString cfg.enableGnomeKeyring ''
             password optional ${pkgs.gnome.gnome-keyring}/lib/security/pam_gnome_keyring.so use_authtok
-          '' +
-          ''
+          '';
 
-            # Session management.
-          '' +
+        session =
           optionalString cfg.setEnvironment ''
             session required pam_env.so conffile=/etc/pam/environment readenv=0
           '' +
@@ -764,8 +782,8 @@ let
           '' +
           optionalString (config.virtualisation.lxc.lxcfs.enable) ''
             session optional ${pkgs.lxc}/lib/security/pam_cgfs.so -c all
-          ''
-        );
+          '';
+      };
     };
 
   };
