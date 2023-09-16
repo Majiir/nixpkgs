@@ -659,24 +659,8 @@ let
           # We use try_first_pass the second time to avoid prompting password twice.
           #
           # The same principle applies to systemd-homed
-          (optionals ((cfg.unixAuth || config.services.homed.enable) &&
-            (config.security.pam.enableEcryptfs
-              || config.security.pam.enableFscrypt
-              || cfg.pamMount
-              || cfg.enableKwallet
-              || cfg.enableGnomeKeyring
-              || cfg.googleAuthenticator.enable
-              || cfg.gnupg.enable
-              || cfg.failDelay.enable
-              || cfg.duoSecurity.enable
-              || cfg.zfs))
-            [
-              { name = "systemd_home-early"; enable = config.services.homed.enable; control = "optional"; modulePath = "${config.systemd.package}/lib/security/pam_systemd_home.so"; }
-              { name = "unix-early"; enable = cfg.unixAuth; control = "optional"; modulePath = "pam_unix.so"; args = {
-                nullok = cfg.allowNullPassword;
-                inherit (cfg) nodelay;
-                likeauth = true;
-              }; }
+          (let
+            rules = [
               { name = "ecryptfs"; enable = config.security.pam.enableEcryptfs; control = "optional"; modulePath = "${pkgs.ecryptfs}/lib/security/pam_ecryptfs.so"; args = {
                 unwrap = true;
               }; }
@@ -701,7 +685,23 @@ let
                 no_increment_hotp = true;
               }; }
               { name = "duo"; enable = cfg.duoSecurity.enable; control = "required"; modulePath = "${pkgs.duo-unix}/lib/security/pam_duo.so"; }
-            ]) ++ [
+            ];
+
+            # Whether any of the above rules is ultimately enabled.
+            enableRules = pipe rules [
+              (map (rule: rule.name))
+              (flip getAttrs cfg.types.auth.rules)
+              (any (rule: rule.enable))
+            ];
+          in optionals ((cfg.unixAuth || config.services.homed.enable) && enableRules)
+            [
+              { name = "systemd_home-early"; enable = config.services.homed.enable && enableRules; control = "optional"; modulePath = "${config.systemd.package}/lib/security/pam_systemd_home.so"; }
+              { name = "unix-early"; enable = cfg.unixAuth && enableRules; control = "optional"; modulePath = "pam_unix.so"; args = {
+                nullok = cfg.allowNullPassword;
+                inherit (cfg) nodelay;
+                likeauth = true;
+              }; }
+            ] ++ rules) ++ [
           { name = "systemd_home"; enable = config.services.homed.enable; control = "sufficient"; modulePath = "${config.systemd.package}/lib/security/pam_systemd_home.so"; }
           { name = "unix"; enable = cfg.unixAuth; control = "sufficient"; modulePath = "pam_unix.so"; args = {
             nullok = cfg.allowNullPassword;
