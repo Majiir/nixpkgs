@@ -502,12 +502,6 @@ let
                 Boolean values render just the key if true, and nothing if false. Null values are ignored. All other values are rendered as key-value pairs.
               '';
             };
-            text = mkOption {
-              type = types.str;
-              description = lib.mdDoc ''
-                Text of the rule (without `service`, `type`, `control`, `module-path` or `module-argument` fields).
-              '';
-            };
           };
         }));
       };
@@ -539,7 +533,7 @@ let
         )));
         formatRules = type: pipe cfg.types.${type} [
           (filter (rule: rule.enable))
-          (map (rule: "${type} ${rule.control} ${rule.modulePath} ${formatModuleArguments rule.args} ${removeSuffix "\n" rule.text}"))
+          (map (rule: "${type} ${rule.control} ${rule.modulePath} ${formatModuleArguments rule.args}"))
           (map (removeSuffix " "))
           (concatStringsSep "\n")
         ];
@@ -562,88 +556,65 @@ let
       # module provides the right hooks.
       types = {
         account = [
-          { name = "ldap"; enable = use_ldap; control = "sufficient"; modulePath = "${pam_ldap}/lib/security/pam_ldap.so"; text = ''
-          ''; }
+          { name = "ldap"; enable = use_ldap; control = "sufficient"; modulePath = "${pam_ldap}/lib/security/pam_ldap.so"; }
           { name = "mysql"; enable = cfg.mysqlAuth; control = "sufficient"; modulePath = "${pkgs.pam_mysql}/lib/security/pam_mysql.so"; args = {
             config_file = "/etc/security/pam_mysql.conf";
-          }; text = ''
-          ''; }
+          }; }
           { name = "kanidm"; enable = config.services.kanidm.enablePam; control = "sufficient"; modulePath = "${pkgs.kanidm}/lib/pam_kanidm.so"; args = {
             ignore_unknown_user = true;
-          }; text = ''
-          ''; }
-          { name = "sss"; enable = config.services.sssd.enable; control = if cfg.sssdStrictAccess then "[default=bad success=ok user_unknown=ignore]" else "sufficient"; modulePath = "${pkgs.sssd}/lib/security/pam_sss.so"; text = ''
-          ''; }
-          { name = "krb5"; enable = config.security.pam.krb5.enable; control = "sufficient"; modulePath = "${pam_krb5}/lib/security/pam_krb5.so"; text = ''
-          ''; }
-          { name = "oslogin_login"; enable = cfg.googleOsLoginAccountVerification; control = "[success=ok ignore=ignore default=die]"; modulePath = "${pkgs.google-guest-oslogin}/lib/security/pam_oslogin_login.so"; text = ''
-          ''; }
-          { name = "oslogin_admin"; enable = cfg.googleOsLoginAccountVerification; control = "[success=ok default=ignore]"; modulePath = "${pkgs.google-guest-oslogin}/lib/security/pam_oslogin_admin.so"; text = ''
-          ''; }
-          { name = "systemd_home"; enable = config.services.homed.enable; control = "sufficient"; modulePath = "${config.systemd.package}/lib/security/pam_systemd_home.so"; text = ''
-          ''; }
+          }; }
+          { name = "sss"; enable = config.services.sssd.enable; control = if cfg.sssdStrictAccess then "[default=bad success=ok user_unknown=ignore]" else "sufficient"; modulePath = "${pkgs.sssd}/lib/security/pam_sss.so"; }
+          { name = "krb5"; enable = config.security.pam.krb5.enable; control = "sufficient"; modulePath = "${pam_krb5}/lib/security/pam_krb5.so"; }
+          { name = "oslogin_login"; enable = cfg.googleOsLoginAccountVerification; control = "[success=ok ignore=ignore default=die]"; modulePath = "${pkgs.google-guest-oslogin}/lib/security/pam_oslogin_login.so"; }
+          { name = "oslogin_admin"; enable = cfg.googleOsLoginAccountVerification; control = "[success=ok default=ignore]"; modulePath = "${pkgs.google-guest-oslogin}/lib/security/pam_oslogin_admin.so"; }
+          { name = "systemd_home"; enable = config.services.homed.enable; control = "sufficient"; modulePath = "${config.systemd.package}/lib/security/pam_systemd_home.so"; }
           # The required pam_unix.so module has to come after all the sufficient modules
           # because otherwise, the account lookup will fail if the user does not exist
           # locally, for example with MySQL- or LDAP-auth.
-          { name = "unix"; control = "required"; modulePath = "pam_unix.so"; text = ''
-          ''; }
+          { name = "unix"; control = "required"; modulePath = "pam_unix.so"; }
         ];
 
         auth = [
-          { name = "oslogin_login"; enable = cfg.googleOsLoginAuthentication; control = "[success=done perm_denied=die default=ignore]"; modulePath = "${pkgs.google-guest-oslogin}/lib/security/pam_oslogin_login.so"; text = ''
-          ''; }
-          { name = "rootok"; enable = cfg.rootOK; control = "sufficient"; modulePath = "pam_rootok.so"; text = ''
-          ''; }
+          { name = "oslogin_login"; enable = cfg.googleOsLoginAuthentication; control = "[success=done perm_denied=die default=ignore]"; modulePath = "${pkgs.google-guest-oslogin}/lib/security/pam_oslogin_login.so"; }
+          { name = "rootok"; enable = cfg.rootOK; control = "sufficient"; modulePath = "pam_rootok.so"; }
           { name = "wheel"; enable = cfg.requireWheel; control = "required"; modulePath = "pam_wheel.so"; args = {
             use_uid = true;
-          }; text = ''
-          ''; }
-          { name = "faillock"; enable = cfg.logFailures; control = "required"; modulePath = "pam_faillock.so"; text = ''
-          ''; }
+          }; }
+          { name = "faillock"; enable = cfg.logFailures; control = "required"; modulePath = "pam_faillock.so"; }
           { name = "mysql"; enable = cfg.mysqlAuth; control = "sufficient"; modulePath = "${pkgs.pam_mysql}/lib/security/pam_mysql.so"; args = {
             config_file = "/etc/security/pam_mysql.conf";
-          }; text = ''
-          ''; }
+          }; }
           { name = "ssh_agent_auth"; enable = config.security.pam.enableSSHAgentAuth && cfg.sshAgentAuth; control = "sufficient"; modulePath = "${pkgs.pam_ssh_agent_auth}/libexec/pam_ssh_agent_auth.so"; args = {
             file = lib.concatStringsSep ":" config.services.openssh.authorizedKeysFiles;
-          }; text = ''
-          ''; }
+          }; }
           (let p11 = config.security.pam.p11; in { name = "p11"; enable = cfg.p11Auth; control = p11.control; modulePath = "${pkgs.pam_p11}/lib/security/pam_p11.so"; args = {
             "${pkgs.opensc}/lib/opensc-pkcs11.so" = true;
-          }; text = ''
-          ''; })
+          }; })
           (let u2f = config.security.pam.u2f; in { name = "u2f"; enable = cfg.u2fAuth; control = u2f.control; modulePath = "${pkgs.pam_u2f}/lib/security/pam_u2f.so"; args = {
             inherit (u2f) debug interactive cue origin;
             authfile = u2f.authFile;
             appid = u2f.appId;
-          }; text = (''
-          ''); })
-          { name = "usb"; enable = cfg.usbAuth; control = "sufficient"; modulePath = "${pkgs.pam_usb}/lib/security/pam_usb.so"; text = ''
-          ''; }
+          }; })
+          { name = "usb"; enable = cfg.usbAuth; control = "sufficient"; modulePath = "${pkgs.pam_usb}/lib/security/pam_usb.so"; }
           (let ussh = config.security.pam.ussh; in { name = "ussh"; enable = config.security.pam.ussh.enable && cfg.usshAuth; control = ussh.control; modulePath = "${pkgs.pam_ussh}/lib/security/pam_ussh.so"; args = {
             ca_file = ussh.caFile;
             authorized_principals = ussh.authorizedPrincipals;
             authorized_principals_file= ussh.authorizedPrincipalsFile;
             inherit (ussh) group;
-          }; text = ''
-          ''; })
+          }; })
           (let oath = config.security.pam.oath; in { name = "oath"; enable = cfg.oathAuth; control = "requisite"; modulePath = "${pkgs.oath-toolkit}/lib/security/pam_oath.so"; args = {
             inherit (oath) window digits;
             usersfile = oath.usersFile;
-          }; text = ''
-          ''; })
+          }; })
           (let yubi = config.security.pam.yubico; in { name = "yubico"; enable = cfg.yubicoAuth; control = yubi.control; modulePath = "${pkgs.yubico-pam}/lib/security/pam_yubico.so"; args = {
             inherit (yubi) mode debug;
             chalresp_path = yubi.challengeResponsePath;
             id = if yubi.mode == "client" then yubi.id else null;
-          }; text = ''
-          ''; })
+          }; })
           (let dp9ik = config.security.pam.dp9ik; in { name = "p9"; enable = dp9ik.enable; control = dp9ik.control; modulePath = "${pkgs.pam_dp9ik}/lib/security/pam_p9.so"; args = {
             "${dp9ik.authserver}" = true;
-          }; text = ''
-          ''; })
-          { name = "fprintd"; enable = cfg.fprintAuth; control = "sufficient"; modulePath = "${pkgs.fprintd}/lib/security/pam_fprintd.so"; text = ''
-          ''; }
+          }; })
+          { name = "fprintd"; enable = cfg.fprintAuth; control = "sufficient"; modulePath = "${pkgs.fprintd}/lib/security/pam_fprintd.so"; }
         ] ++
           # Modules in this block require having the password set in PAM_AUTHTOK.
           # pam_unix is marked as 'sufficient' on NixOS which means nothing will run
@@ -665,232 +636,170 @@ let
               || cfg.duoSecurity.enable
               || cfg.zfs))
             [
-              { name = "systemd_home-early"; enable = config.services.homed.enable; control = "optional"; modulePath = "${config.systemd.package}/lib/security/pam_systemd_home.so"; text = ''
-              ''; }
+              { name = "systemd_home-early"; enable = config.services.homed.enable; control = "optional"; modulePath = "${config.systemd.package}/lib/security/pam_systemd_home.so"; }
               { name = "unix-early"; enable = cfg.unixAuth; control = "optional"; modulePath = "pam_unix.so"; args = {
                 nullok = cfg.allowNullPassword;
                 inherit (cfg) nodelay;
                 likeauth = true;
-              }; text = ''
-              ''; }
+              }; }
               { name = "ecryptfs"; enable = config.security.pam.enableEcryptfs; control = "optional"; modulePath = "${pkgs.ecryptfs}/lib/security/pam_ecryptfs.so"; args = {
                 unwrap = true;
-              }; text = ''
-              ''; }
-              { name = "fscrypt"; enable = config.security.pam.enableFscrypt; control = "optional"; modulePath = "${pkgs.fscrypt-experimental}/lib/security/pam_fscrypt.so"; text = ''
-              ''; }
+              }; }
+              { name = "fscrypt"; enable = config.security.pam.enableFscrypt; control = "optional"; modulePath = "${pkgs.fscrypt-experimental}/lib/security/pam_fscrypt.so"; }
               { name = "zfs_key"; enable = cfg.zfs; control = "optional"; modulePath = "${config.boot.zfs.package}/lib/security/pam_zfs_key.so"; args = {
                 inherit (config.security.pam.zfs) homes;
-              }; text = ''
-              ''; }
+              }; }
               { name = "mount"; enable = cfg.pamMount; control = "optional"; modulePath = "${pkgs.pam_mount}/lib/security/pam_mount.so"; args = {
                 disable_interactive = true;
-              }; text = ''
-              ''; }
+              }; }
               { name = "kwallet5"; enable = cfg.enableKwallet; control = "optional"; modulePath = "${pkgs.plasma5Packages.kwallet-pam}/lib/security/pam_kwallet5.so"; args = {
                 kwalletd = "${pkgs.plasma5Packages.kwallet.bin}/bin/kwalletd5";
-              }; text = ''
-              ''; }
-              { name = "gnome_keyring"; enable = cfg.enableGnomeKeyring; control = "optional"; modulePath = "${pkgs.gnome.gnome-keyring}/lib/security/pam_gnome_keyring.so"; text = ''
-              ''; }
+              }; }
+              { name = "gnome_keyring"; enable = cfg.enableGnomeKeyring; control = "optional"; modulePath = "${pkgs.gnome.gnome-keyring}/lib/security/pam_gnome_keyring.so"; }
               { name = "gnupg"; enable = cfg.gnupg.enable; control = "optional"; modulePath = "${pkgs.pam_gnupg}/lib/security/pam_gnupg.so"; args = {
                 store-only = cfg.gnupg.storeOnly;
-              }; text = ''
-              ''; }
+              }; }
               { name = "faildelay"; enable = cfg.failDelay.enable; control = "optional"; modulePath = "${pkgs.pam}/lib/security/pam_faildelay.so"; args = {
                 inherit (cfg.failDelay) delay;
-              }; text = ''
-              ''; }
+              }; }
               { name = "google_authenticator"; enable = cfg.googleAuthenticator.enable; control = "required"; modulePath = "${pkgs.google-authenticator}/lib/security/pam_google_authenticator.so"; args = {
                 no_increment_hotp = true;
-              }; text = ''
-              ''; }
-              { name = "duo"; enable = cfg.duoSecurity.enable; control = "required"; modulePath = "${pkgs.duo-unix}/lib/security/pam_duo.so"; text = ''
-              ''; }
+              }; }
+              { name = "duo"; enable = cfg.duoSecurity.enable; control = "required"; modulePath = "${pkgs.duo-unix}/lib/security/pam_duo.so"; }
             ]) ++ [
-          { name = "systemd_home"; enable = config.services.homed.enable; control = "sufficient"; modulePath = "${config.systemd.package}/lib/security/pam_systemd_home.so"; text = ''
-          ''; }
+          { name = "systemd_home"; enable = config.services.homed.enable; control = "sufficient"; modulePath = "${config.systemd.package}/lib/security/pam_systemd_home.so"; }
           { name = "unix"; enable = cfg.unixAuth; control = "sufficient"; modulePath = "pam_unix.so"; args = {
             nullok = cfg.allowNullPassword;
             inherit (cfg) nodelay;
             likeauth = true;
             try_first_pass = true;
-          }; text = ''
-          ''; }
-          { name = "otpw"; enable = cfg.otpwAuth; control = "sufficient"; modulePath = "${pkgs.otpw}/lib/security/pam_otpw.so"; text = ''
-          ''; }
+          }; }
+          { name = "otpw"; enable = cfg.otpwAuth; control = "sufficient"; modulePath = "${pkgs.otpw}/lib/security/pam_otpw.so"; }
           { name = "ldap"; enable = use_ldap; control = "sufficient"; modulePath = "${pam_ldap}/lib/security/pam_ldap.so"; args = {
             use_first_pass = true;
-          }; text = ''
-          ''; }
+          }; }
           { name = "kanidm"; enable = config.services.kanidm.enablePam; control = "sufficient"; modulePath = "${pkgs.kanidm}/lib/pam_kanidm.so"; args = {
             ignore_unknown_user = true;
             use_first_pass = true;
-          }; text = ''
-          ''; }
+          }; }
           { name = "sss"; enable = config.services.sssd.enable; control = "sufficient"; modulePath = "${pkgs.sssd}/lib/security/pam_sss.so"; args = {
             use_first_pass = true;
-          }; text = ''
-          ''; }
+          }; }
           { name = "krb5"; enable = config.security.pam.krb5.enable; control = "[default=ignore success=1 service_err=reset]"; modulePath = "${pam_krb5}/lib/security/pam_krb5.so"; args = {
             use_first_pass = true;
-          }; text = ''
-          ''; }
+          }; }
           { name = "ccreds-validate"; enable = config.security.pam.krb5.enable; control = "[default=die success=done]"; modulePath = "${pam_ccreds}/lib/security/pam_ccreds.so"; args = {
             action = "validate";
             use_first_pass = true;
-          }; text = ''
-          ''; }
+          }; }
           { name = "ccreds-store"; enable = config.security.pam.krb5.enable; control = "sufficient"; modulePath = "${pam_ccreds}/lib/security/pam_ccreds.so"; args = {
             action = "store";
             use_first_pass = true;
-          }; text = ''
-          ''; }
-          { name = "deny"; control = "required"; modulePath = "pam_deny.so"; text = ''
-          ''; }
+          }; }
+          { name = "deny"; control = "required"; modulePath = "pam_deny.so"; }
         ];
 
         password = [
-          { name = "systemd_home"; enable = config.services.homed.enable; control = "sufficient"; modulePath = "${config.systemd.package}/lib/security/pam_systemd_home.so"; text = ''
-          ''; }
+          { name = "systemd_home"; enable = config.services.homed.enable; control = "sufficient"; modulePath = "${config.systemd.package}/lib/security/pam_systemd_home.so"; }
           { name = "unix"; control = "sufficient"; modulePath = "pam_unix.so"; args = {
             nullok = true;
             yescrypt = true;
-          }; text = ''
-          ''; }
-          { name = "ecryptfs"; enable = config.security.pam.enableEcryptfs; control = "optional"; modulePath = "${pkgs.ecryptfs}/lib/security/pam_ecryptfs.so"; text = ''
-          ''; }
-          { name = "fscrypt"; enable = config.security.pam.enableFscrypt; control = "optional"; modulePath = "${pkgs.fscrypt-experimental}/lib/security/pam_fscrypt.so"; text = ''
-          ''; }
+          }; }
+          { name = "ecryptfs"; enable = config.security.pam.enableEcryptfs; control = "optional"; modulePath = "${pkgs.ecryptfs}/lib/security/pam_ecryptfs.so"; }
+          { name = "fscrypt"; enable = config.security.pam.enableFscrypt; control = "optional"; modulePath = "${pkgs.fscrypt-experimental}/lib/security/pam_fscrypt.so"; }
           { name = "zfs_key"; enable = cfg.zfs; control = "optional"; modulePath = "${config.boot.zfs.package}/lib/security/pam_zfs_key.so"; args = {
             inherit (config.security.pam.zfs) homes;
-          }; text = ''
-          ''; }
-          { name = "mount"; enable = cfg.pamMount; control = "optional"; modulePath = "${pkgs.pam_mount}/lib/security/pam_mount.so"; text = ''
-          ''; }
-          { name = "ldap"; enable = use_ldap; control = "sufficient"; modulePath = "${pam_ldap}/lib/security/pam_ldap.so"; text = ''
-          ''; }
+          }; }
+          { name = "mount"; enable = cfg.pamMount; control = "optional"; modulePath = "${pkgs.pam_mount}/lib/security/pam_mount.so"; }
+          { name = "ldap"; enable = use_ldap; control = "sufficient"; modulePath = "${pam_ldap}/lib/security/pam_ldap.so"; }
           { name = "mysql"; enable = cfg.mysqlAuth; control = "sufficient"; modulePath = "${pkgs.pam_mysql}/lib/security/pam_mysql.so"; args = {
             config_file = "/etc/security/pam_mysql.conf";
-          }; text = ''
-          ''; }
-          { name = "kanidm"; enable = config.services.kanidm.enablePam; control = "sufficient"; modulePath = "${pkgs.kanidm}/lib/pam_kanidm.so"; text = ''
-          ''; }
-          { name = "sss"; enable = config.services.sssd.enable; control = "sufficient"; modulePath = "${pkgs.sssd}/lib/security/pam_sss.so"; text = ''
-          ''; }
+          }; }
+          { name = "kanidm"; enable = config.services.kanidm.enablePam; control = "sufficient"; modulePath = "${pkgs.kanidm}/lib/pam_kanidm.so"; }
+          { name = "sss"; enable = config.services.sssd.enable; control = "sufficient"; modulePath = "${pkgs.sssd}/lib/security/pam_sss.so"; }
           { name = "krb5"; enable = config.security.pam.krb5.enable; control = "sufficient"; modulePath = "${pam_krb5}/lib/security/pam_krb5.so"; args = {
             use_first_pass = true;
-          }; text = ''
-          ''; }
+          }; }
           { name = "gnome_keyring"; enable = cfg.enableGnomeKeyring; control = "optional"; modulePath = "${pkgs.gnome.gnome-keyring}/lib/security/pam_gnome_keyring.so"; args = {
             use_authtok = true;
-          }; text = ''
-          ''; }
+          }; }
         ];
 
         session = [
           { name = "env"; enable = cfg.setEnvironment; control = "required"; modulePath = "pam_env.so"; args = {
             conffile = "/etc/pam/environment";
             readenv = 0;
-          }; text = ''
-          ''; }
-          { name = "unix"; control = "required"; modulePath = "pam_unix.so"; text = ''
-          ''; }
-          { name = "loginuid"; enable = cfg.setLoginUid; control = if config.boot.isContainer then "optional" else "required"; modulePath = "pam_loginuid.so"; text = ''
-          ''; }
+          }; }
+          { name = "unix"; control = "required"; modulePath = "pam_unix.so"; }
+          { name = "loginuid"; enable = cfg.setLoginUid; control = if config.boot.isContainer then "optional" else "required"; modulePath = "pam_loginuid.so"; }
           { name = "tty_audit"; enable = cfg.ttyAudit.enable; control = "required"; modulePath = "${pkgs.pam}/lib/security/pam_tty_audit.so"; args = {
             open_only = cfg.ttyAudit.openOnly;
             enable = cfg.ttyAudit.enablePattern;
             disable = cfg.ttyAudit.disablePattern;
-          }; text = ''
-          ''; }
-          { name = "systemd_home"; enable = config.services.homed.enable; control = "required"; modulePath = "${config.systemd.package}/lib/security/pam_systemd_home.so"; text = ''
-          ''; }
+          }; }
+          { name = "systemd_home"; enable = config.services.homed.enable; control = "required"; modulePath = "${config.systemd.package}/lib/security/pam_systemd_home.so"; }
           { name = "mkhomedir"; enable = cfg.makeHomeDir; control = "required"; modulePath = "${pkgs.pam}/lib/security/pam_mkhomedir.so"; args = {
             silent = true;
             skel = config.security.pam.makeHomeDir.skelDirectory;
             inherit (config.security.pam.makeHomeDir) umask;
-          }; text = ''
-          ''; }
+          }; }
           { name = "lastlog"; enable = cfg.updateWtmp; control = "required"; modulePath = "${pkgs.pam}/lib/security/pam_lastlog.so"; args = {
             silent = true;
-          }; text = ''
-          ''; }
-          { name = "ecryptfs"; enable = config.security.pam.enableEcryptfs; control = "optional"; modulePath = "${pkgs.ecryptfs}/lib/security/pam_ecryptfs.so"; text = ''
-          ''; }
+          }; }
+          { name = "ecryptfs"; enable = config.security.pam.enableEcryptfs; control = "optional"; modulePath = "${pkgs.ecryptfs}/lib/security/pam_ecryptfs.so"; }
           # Work around https://github.com/systemd/systemd/issues/8598
           # Skips the pam_fscrypt module for systemd-user sessions which do not have a password
           # anyways.
           # See also https://github.com/google/fscrypt/issues/95
           { name = "fscrypt-skip-systemd"; enable = config.security.pam.enableFscrypt; control = "[success=1 default=ignore]"; modulePath = "pam_succeed_if.so"; args = {
             "service = systemd-user" = true;
-          }; text = ''
-          ''; }
-          { name = "fscrypt"; enable = config.security.pam.enableFscrypt; control = "optional"; modulePath = "${pkgs.fscrypt-experimental}/lib/security/pam_fscrypt.so"; text = ''
-          ''; }
+          }; }
+          { name = "fscrypt"; enable = config.security.pam.enableFscrypt; control = "optional"; modulePath = "${pkgs.fscrypt-experimental}/lib/security/pam_fscrypt.so"; }
           { name = "zfs_key-skip-systemd"; enable = cfg.zfs; control = "[success=1 default=ignore]"; modulePath = "pam_succeed_if.so"; args = {
             "service = systemd-user" = true;
-          }; text = ''
-          ''; }
+          }; }
           { name = "zfs_key"; enable = cfg.zfs; control = "optional"; modulePath = "${config.boot.zfs.package}/lib/security/pam_zfs_key.so"; args = {
             inherit (config.security.pam.zfs) homes;
             nounmount = config.security.pam.zfs.noUnmount;
-          }; text = ''
-          ''; }
+          }; }
           { name = "mount"; enable = cfg.pamMount; control = "optional"; modulePath = "${pkgs.pam_mount}/lib/security/pam_mount.so"; args = {
             disable_interactive = true;
-          }; text = ''
-          ''; }
-          { name = "ldap"; enable = use_ldap; control = "optional"; modulePath = "${pam_ldap}/lib/security/pam_ldap.so"; text = ''
-          ''; }
+          }; }
+          { name = "ldap"; enable = use_ldap; control = "optional"; modulePath = "${pam_ldap}/lib/security/pam_ldap.so"; }
           { name = "mysql"; enable = cfg.mysqlAuth; control = "optional"; modulePath = "${pkgs.pam_mysql}/lib/security/pam_mysql.so"; args = {
             config_file = "/etc/security/pam_mysql.conf";
-          }; text = ''
-          ''; }
-          { name = "kanidm"; enable = config.services.kanidm.enablePam; control = "optional"; modulePath = "${pkgs.kanidm}/lib/pam_kanidm.so"; text = ''
-          ''; }
-          { name = "sss"; enable = config.services.sssd.enable; control = "optional"; modulePath = "${pkgs.sssd}/lib/security/pam_sss.so"; text = ''
-          ''; }
-          { name = "krb5"; enable = config.security.pam.krb5.enable; control = "optional"; modulePath = "${pam_krb5}/lib/security/pam_krb5.so"; text = ''
-          ''; }
-          { name = "otpw"; enable = cfg.otpwAuth; control = "optional"; modulePath = "${pkgs.otpw}/lib/security/pam_otpw.so"; text = ''
-          ''; }
-          { name = "systemd"; enable = cfg.startSession; control = "optional"; modulePath = "${config.systemd.package}/lib/security/pam_systemd.so"; text = ''
-          ''; }
+          }; }
+          { name = "kanidm"; enable = config.services.kanidm.enablePam; control = "optional"; modulePath = "${pkgs.kanidm}/lib/pam_kanidm.so"; }
+          { name = "sss"; enable = config.services.sssd.enable; control = "optional"; modulePath = "${pkgs.sssd}/lib/security/pam_sss.so"; }
+          { name = "krb5"; enable = config.security.pam.krb5.enable; control = "optional"; modulePath = "${pam_krb5}/lib/security/pam_krb5.so"; }
+          { name = "otpw"; enable = cfg.otpwAuth; control = "optional"; modulePath = "${pkgs.otpw}/lib/security/pam_otpw.so"; }
+          { name = "systemd"; enable = cfg.startSession; control = "optional"; modulePath = "${config.systemd.package}/lib/security/pam_systemd.so"; }
           { name = "xauth"; enable = cfg.forwardXAuth; control = "optional"; modulePath = "pam_xauth.so"; args = {
             xauthpath = "${pkgs.xorg.xauth}/bin/xauth";
             systemuser = 99;
-          }; text = ''
-          ''; }
+          }; }
           { name = "limits"; enable = cfg.limits != []; control = "required"; modulePath = "${pkgs.pam}/lib/security/pam_limits.so"; args = {
             conf = "${makeLimitsConf cfg.limits}";
-          }; text = ''
-          ''; }
+          }; }
           { name = "motd"; enable = cfg.showMotd && (config.users.motd != null || config.users.motdFile != null); control = "optional"; modulePath = "${pkgs.pam}/lib/security/pam_motd.so"; args = {
             inherit motd;
-          }; text = ''
-          ''; }
+          }; }
           { name = "apparmor"; enable = cfg.enableAppArmor && config.security.apparmor.enable; control = "optional"; modulePath = "${pkgs.apparmor-pam}/lib/security/pam_apparmor.so"; args = {
             order = "user,group,default";
             debug = true;
-          }; text = ''
-          ''; }
+          }; }
           { name = "kwallet5"; enable = cfg.enableKwallet; control = "optional"; modulePath = "${pkgs.plasma5Packages.kwallet-pam}/lib/security/pam_kwallet5.so"; args = {
             kwalletd = "${pkgs.plasma5Packages.kwallet.bin}/bin/kwalletd5";
-          }; text = ''
-          ''; }
+          }; }
           { name = "gnome_keyring"; enable = cfg.enableGnomeKeyring; control = "optional"; modulePath = "${pkgs.gnome.gnome-keyring}/lib/security/pam_gnome_keyring.so"; args = {
             auto_start = true;
-          }; text = ''
-          ''; }
+          }; }
           { name = "gnupg"; enable = cfg.gnupg.enable; control = "optional"; modulePath = "${pkgs.pam_gnupg}/lib/security/pam_gnupg.so"; args = {
             no-autostart = cfg.gnupg.noAutostart;
-          }; text = ''
-          ''; }
+          }; }
           { name = "cgfs"; enable = config.virtualisation.lxc.lxcfs.enable; control = "optional"; modulePath = "${pkgs.lxc}/lib/security/pam_cgfs.so"; args = {
             "-c all" = true;
-          }; text = ''
-          ''; }
+          }; }
         ];
       };
     };
