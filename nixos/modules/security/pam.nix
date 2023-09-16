@@ -521,11 +521,12 @@ let
           optional config.security.pam.krb5.enable ''
             sufficient ${pam_krb5}/lib/security/pam_krb5.so
           '' ++
-          optionals cfg.googleOsLoginAccountVerification [''
+          optional cfg.googleOsLoginAccountVerification ''
             [success=ok ignore=ignore default=die] ${pkgs.google-guest-oslogin}/lib/security/pam_oslogin_login.so
-          '' ''
+          '' ++
+          optional cfg.googleOsLoginAccountVerification ''
             [success=ok default=ignore] ${pkgs.google-guest-oslogin}/lib/security/pam_oslogin_admin.so
-          ''] ++
+          '' ++
           optional config.services.homed.enable ''
             sufficient ${config.systemd.package}/lib/security/pam_systemd_home.so
           '' ++
@@ -655,13 +656,15 @@ let
           optional config.services.sssd.enable ''
             sufficient ${pkgs.sssd}/lib/security/pam_sss.so use_first_pass
           '' ++
-          optionals config.security.pam.krb5.enable [''
+          optional config.security.pam.krb5.enable ''
             [default=ignore success=1 service_err=reset] ${pam_krb5}/lib/security/pam_krb5.so use_first_pass
-          '' ''
+          '' ++
+          optional config.security.pam.krb5.enable ''
             [default=die success=done] ${pam_ccreds}/lib/security/pam_ccreds.so action=validate use_first_pass
-          '' ''
+          '' ++
+          optional config.security.pam.krb5.enable ''
             sufficient ${pam_ccreds}/lib/security/pam_ccreds.so action=store use_first_pass
-          ''] ++
+          '' ++
           singleton ''
             required pam_deny.so
           '';
@@ -732,21 +735,22 @@ let
           optional config.security.pam.enableEcryptfs ''
             optional ${pkgs.ecryptfs}/lib/security/pam_ecryptfs.so
           '' ++
-          optionals config.security.pam.enableFscrypt [
-            # Work around https://github.com/systemd/systemd/issues/8598
-            # Skips the pam_fscrypt module for systemd-user sessions which do not have a password
-            # anyways.
-            # See also https://github.com/google/fscrypt/issues/95
-          ''
+          # Work around https://github.com/systemd/systemd/issues/8598
+          # Skips the pam_fscrypt module for systemd-user sessions which do not have a password
+          # anyways.
+          # See also https://github.com/google/fscrypt/issues/95
+          optional config.security.pam.enableFscrypt ''
             [success=1 default=ignore] pam_succeed_if.so service = systemd-user
-          '' ''
+          '' ++
+          optional config.security.pam.enableFscrypt ''
             optional ${pkgs.fscrypt-experimental}/lib/security/pam_fscrypt.so
-          ''] ++
-          optionals cfg.zfs [''
+          '' ++
+          optional cfg.zfs ''
             [success=1 default=ignore] pam_succeed_if.so service = systemd-user
-          '' ''
+          '' ++
+          optional cfg.zfs ''
             optional ${config.boot.zfs.package}/lib/security/pam_zfs_key.so homes=${config.security.pam.zfs.homes} ${optionalString config.security.pam.zfs.noUnmount "nounmount"}
-          ''] ++
+          '' ++
           optional cfg.pamMount ''
             optional ${pkgs.pam_mount}/lib/security/pam_mount.so disable_interactive
           '' ++
