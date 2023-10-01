@@ -509,6 +509,8 @@ let
     in
       if (length nsList > 0 && ns != "init") then ''ip netns exec "${ns}" "${cmd}"'' else cmd;
 
+  mkIfNotNull = x: mkIf (!(isNull x)) x;
+
   # TODO: check systemd.netdev(5) for any missing options we could add
   # TODO: double-check how we should name these netdevs
   generateNetdev = name: interface: nameValuePair "10-${name}" {
@@ -517,20 +519,19 @@ let
       Name = name;
 
       # TODO: update description
-      # TODO: check null handling
-      MTUBytes = interface.mtu;
+      MTUBytes = mkIfNotNull interface.mtu;
     };
     wireguardConfig = {
       PrivateKeyFile = interface.privateKeyFile; # TODO: assert that this exists, one way or the other
-      ListenPort = interface.listenPort; # TODO: test how this is rendered when null; is it missing, or set?
+      ListenPort = mkIfNotNull interface.listenPort; # TODO: test how this is rendered when null; is it missing, or set?
 
-      FirewallMark = interface.fwMark; # TODO: double-check handling of null value
+      FirewallMark = mkIfNotNull interface.fwMark; # TODO: double-check handling of null value
 
       # TODO: update description of 'table' option for precision
       # TODO: see how this is rendered when missing (i.e. with mkIf) and switch to that if appropriate
       # TODO: see if we should add a peer-level option, since systemd supports that
       RouteTable = if interface.allowedIPsAsRoutes then interface.table else "off";
-      RouteMetric = interface.metric; # TODO: double-check null handling & defaults
+      RouteMetric = mkIfNotNull interface.metric; # TODO: double-check null handling & defaults
     };
 
     # TODO
@@ -546,16 +547,16 @@ let
       PublicKey = peer.publicKey;
 
       # TODO: should we really support this??? maybe drop it. is it even supported by networkd in nixos?
-      PresharedKey = peer.presharedKey; # TODO: double-check null handling
+      PresharedKey = mkIfNotNull peer.presharedKey; # TODO: double-check null handling
 
       # TODO: double-check type, since this requires an absolute path
-      PresharedKeyFile = peer.presharedKeyFile; # TODO: double-check null handling
+      PresharedKeyFile = mkIfNotNull peer.presharedKeyFile; # TODO: double-check null handling
 
       AllowedIPs = peer.allowedIPs;
 
       # TODO: check null handling
       # TODO: update option description for accuracy
-      Endpoint = peer.endpoint;
+      Endpoint = mkIfNotNull peer.endpoint;
 
       # TODO:
       # - dynamicEndpointRefreshSeconds
@@ -563,7 +564,7 @@ let
 
       # TODO: null handling
       # TODO: consider changing the default to 0?
-      PersistentKeepalive = peer.persistentKeepalive;
+      PersistentKeepalive = mkIfNotNull peer.persistentKeepalive;
     };
 
     # TODO: see about adding these in:
@@ -576,15 +577,13 @@ let
 
   generateNetwork = name: interface: {
     # TODO: should we match on netdev instead?
-    matchConfig.Name = interface;
+    matchConfig.Name = name;
 
     # TODO: when useNetworkd, validate that IPs have subnet length things
     address = interface.ips;
-    # address
+
     # dns
     # domains
-
-    # TODO: mtu? it's a cfg option, not sure where it goes
 
     # TODO: populate
   };

@@ -22,7 +22,7 @@ listToAttrs (
       v' = replaceStrings [ "." ] [ "_" ] version;
     in
     flip mapAttrsToList tests (name: test:
-      nameValuePair "wireguard-${name}-linux-${v'}${optionalString useNetworkd "-networkd"}" (test { kernelPackages = pkgs."linuxPackages_${v'}"; })
+      nameValuePair "wireguard-${name}-linux-${v'}${optionalString useNetworkd "-networkd"}" (test { kernelPackages = pkgs."linuxPackages_${v'}"; inherit useNetworkd; })
     )
   )
 )
