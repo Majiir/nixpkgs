@@ -509,29 +509,29 @@ let
     in
       if (length nsList > 0 && ns != "init") then ''ip netns exec "${ns}" "${cmd}"'' else cmd;
 
-  mkIfNotNull = x: mkIf (!(isNull x)) x;
+  removeNulls = mapAttrs (_: filterAttrs (_: v: v != null));
 
   # TODO: check systemd.netdev(5) for any missing options we could add
   # TODO: double-check how we should name these netdevs
   generateNetdev = name: interface: nameValuePair "10-${name}" {
-    netdevConfig = {
+    netdevConfig = removeNulls {
       Kind = "wireguard";
-      Name = name;
+      Name = trace "name: ${toString name}" name;
 
       # TODO: update description
-      MTUBytes = mkIfNotNull interface.mtu;
+      MTUBytes = trace "mtu: ${toString interface.mtu}" interface.mtu;
     };
-    wireguardConfig = {
+    wireguardConfig = removeNulls {
       PrivateKeyFile = interface.privateKeyFile; # TODO: assert that this exists, one way or the other
-      ListenPort = mkIfNotNull interface.listenPort; # TODO: test how this is rendered when null; is it missing, or set?
+      ListenPort = interface.listenPort; # TODO: test how this is rendered when null; is it missing, or set?
 
-      FirewallMark = mkIfNotNull interface.fwMark; # TODO: double-check handling of null value
+      FirewallMark = interface.fwMark; # TODO: double-check handling of null value
 
       # TODO: update description of 'table' option for precision
       # TODO: see how this is rendered when missing (i.e. with mkIf) and switch to that if appropriate
       # TODO: see if we should add a peer-level option, since systemd supports that
       RouteTable = if interface.allowedIPsAsRoutes then interface.table else "off";
-      RouteMetric = mkIfNotNull interface.metric; # TODO: double-check null handling & defaults
+      RouteMetric = interface.metric; # TODO: double-check null handling & defaults
     };
 
     # TODO
@@ -543,20 +543,20 @@ let
   # TODO: check systemd.netdev(5) for any missing options we could add
   generateWireguardPeer = peer: {
     # TODO
-    wireguardPeerConfig = {
+    wireguardPeerConfig = removeNulls {
       PublicKey = peer.publicKey;
 
       # TODO: should we really support this??? maybe drop it. is it even supported by networkd in nixos?
-      PresharedKey = mkIfNotNull peer.presharedKey; # TODO: double-check null handling
+      PresharedKey = peer.presharedKey; # TODO: double-check null handling
 
       # TODO: double-check type, since this requires an absolute path
-      PresharedKeyFile = mkIfNotNull peer.presharedKeyFile; # TODO: double-check null handling
+      PresharedKeyFile = peer.presharedKeyFile; # TODO: double-check null handling
 
       AllowedIPs = peer.allowedIPs;
 
       # TODO: check null handling
       # TODO: update option description for accuracy
-      Endpoint = mkIfNotNull peer.endpoint;
+      Endpoint = peer.endpoint;
 
       # TODO:
       # - dynamicEndpointRefreshSeconds
@@ -564,7 +564,7 @@ let
 
       # TODO: null handling
       # TODO: consider changing the default to 0?
-      PersistentKeepalive = mkIfNotNull peer.persistentKeepalive;
+      PersistentKeepalive = peer.persistentKeepalive;
     };
 
     # TODO: see about adding these in:
