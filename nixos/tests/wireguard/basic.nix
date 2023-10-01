@@ -1,4 +1,4 @@
-import ../make-test-python.nix ({ pkgs, lib, kernelPackages ? null, ...} :
+import ../make-test-python.nix ({ pkgs, lib, kernelPackages ? null, useNetworkd ? false, ...} :
   let
     wg-snakeoil-keys = import ./snakeoil-keys.nix;
     peer = (import ./make-peer.nix) { inherit lib; };
@@ -15,6 +15,7 @@ import ../make-test-python.nix ({ pkgs, lib, kernelPackages ? null, ...} :
         ip6 = "fd00::1";
         extraConfig = {
           boot = lib.mkIf (kernelPackages != null) { inherit kernelPackages; };
+          networking.wireguard.useNetworkd = useNetworkd;
           networking.firewall.allowedUDPPorts = [ 23542 ];
           networking.wireguard.interfaces.wg0 = {
             ips = [ "10.23.42.1/32" "fc00::1/128" ];
@@ -36,6 +37,7 @@ import ../make-test-python.nix ({ pkgs, lib, kernelPackages ? null, ...} :
         ip6 = "fd00::2";
         extraConfig = {
           boot = lib.mkIf (kernelPackages != null) { inherit kernelPackages; };
+          networking.wireguard.useNetworkd = useNetworkd;
           networking.wireguard.interfaces.wg0 = {
             ips = [ "10.23.42.2/32" "fc00::2/128" ];
             listenPort = 23542;
