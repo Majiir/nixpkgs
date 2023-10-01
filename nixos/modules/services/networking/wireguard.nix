@@ -8,7 +8,6 @@ let
   opt = options.networking.wireguard;
 
   kernel = config.boot.kernelPackages;
-  useNetworkd = config.networking.useNetworkd;
 
   # interface options
 
@@ -631,6 +630,24 @@ in
         example = true;
       };
 
+      useNetworkd = mkOption {
+        # TODO
+        description = lib.mdDoc ''
+        Whether to use networkd as the network configuration backend instead of
+        the legacy script-based system for Wireguard interfaces.
+        
+        ::: {.warning}
+        The networkd backend may have subtly different behavior than the legacy
+        script-based system. Use caution when enabling this option on a system
+        with an existing Wireguard configuration.
+        :::
+        '';
+        type = types.bool;
+        # TODO: use stateVersion to set this to default ON for newer releases!
+        default = config.networking.useNetworkd;
+        defaultText = literalExpression "config.networking.useNetworkd";
+      };
+
       # TODO: update description here too
       interfaces = mkOption {
         description = lib.mdDoc ''
@@ -696,7 +713,7 @@ in
       systemd.targets = mapAttrs' generateInterfaceTarget cfg.interfaces;
 
       # TODO
-      systemd.network = mkIf useNetworkd {
+      systemd.network = mkIf cfg.useNetworkd {
         # TODO: should we do this here or rely on it coming from elsewhere?
         enable = true;
 
