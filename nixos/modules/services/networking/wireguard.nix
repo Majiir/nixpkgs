@@ -8,6 +8,7 @@ let
   opt = options.networking.wireguard;
 
   kernel = config.boot.kernelPackages;
+  useNetworkd = config.networking.useNetworkd;
 
   # interface options
 
@@ -508,6 +509,101 @@ let
       ns = last nsList;
     in
       if (length nsList > 0 && ns != "init") then ''ip netns exec "${ns}" "${cmd}"'' else cmd;
+
+  # TODO: check systemd.netdev(5) for any missing options we could add
+  # TODO: double-check how we should name these netdevs
+  generateNetdev = name: interface: nameValuePair "10-${name}" {
+    netdevConfig = {
+      Kind = "wireguard";
+      Name = name;
+
+      # TODO: update description
+      # TODO: check null handling
+      MTUBytes = interface.mtu;
+    };
+    wireguardConfig = {
+      PrivateKeyFile = interface.privateKeyFile; # TODO: assert that this exists, one way or the other
+      ListenPort = interface.listenPort; # TODO: test how this is rendered when null; is it missing, or set?
+
+      FirewallMark = interface.fwMark; # TODO: double-check handling of null value
+
+      # TODO: update description of 'table' option for precision
+      # TODO: see how this is rendered when missing (i.e. with mkIf) and switch to that if appropriate
+      # TODO: see if we should add a peer-level option, since systemd supports that
+      RouteTable = if interface.allowedIPsAsRoutes then interface.table else "off";
+      RouteMetric = interface.metric; # TODO: double-check null handling & defaults
+    };
+
+    # TODO
+    wireguardPeers = map generateWireguardPeer interface.peers;
+
+    # TODO: Is there any more we need?
+  };
+
+  # TODO: check systemd.netdev(5) for any missing options we could add
+  generateWireguardPeer = peer: {
+    # TODO
+    wireguardPeerConfig = {
+      PublicKey = peer.publicKey;
+
+      # TODO: should we really support this??? maybe drop it. is it even supported by networkd in nixos?
+      PresharedKey = peer.presharedKey; # TODO: double-check null handling
+
+      # TODO: double-check type, since this requires an absolute path
+      PresharedKeyFile = peer.presharedKeyFile; # TODO: double-check null handling
+
+      AllowedIPs = peer.allowedIPs;
+
+      # TODO: check null handling
+      # TODO: update option description for accuracy
+      Endpoint = peer.endpoint;
+
+      # TODO:
+      # - dynamicEndpointRefreshSeconds
+      # - dynamicEndpointRefreshRestartSeconds
+
+      # TODO: null handling
+      # TODO: consider changing the default to 0?
+      PersistentKeepalive = peer.persistentKeepalive;
+    };
+
+    # TODO: see about adding these in:
+    # - RouteTable
+    # - RouteMetric
+
+    # TODO: make sure it's okay that we DON'T use these from nixos:
+    # - name
+  };
+
+  generateNetwork = name: interface: {
+    # TODO: should we match on netdev instead?
+    matchConfig.Name = interface;
+
+    # TODO: when useNetworkd, validate that IPs have subnet length things
+    address = interface.ips;
+    # address
+    # dns
+    # domains
+
+    # TODO: mtu? it's a cfg option, not sure where it goes
+
+    # TODO: populate
+  };
+
+  # TODO: assert privateKey not supported (...or support it, MEH)
+  # TODO: make sure generatePrivateKeyFile is still enabled (it should be compatible)
+
+  # TODO: See if we can actually support any of these, and assert warnings if not:
+  # - preSetup
+  # - postSetup
+  # - postShutdown
+
+
+  # TODO: see if it's possible to support these, or mark unsupported for now:
+  # - socketNamespace
+  # - interfaceNamespace
+  # - 
+
 in
 
 {
@@ -519,6 +615,7 @@ in
     networking.wireguard = {
 
       enable = mkOption {
+        # TODO: update comments about preferring systemd.network.netdevs; tell them to use useNetworkd instead.
         description = lib.mdDoc ''
           Whether to enable WireGuard.
 
@@ -527,12 +624,14 @@ in
           use that instead.
         '';
         type = types.bool;
+        # TODO: update w/ stateVersion? delete entirely?
         # 2019-05-25: Backwards compatibility.
         default = cfg.interfaces != {};
         defaultText = literalExpression "config.${opt.interfaces} != { }";
         example = true;
       };
 
+      # TODO: update description here too
       interfaces = mkOption {
         description = lib.mdDoc ''
           WireGuard interfaces.
@@ -595,6 +694,22 @@ in
       (filterAttrs (name: value: value.generatePrivateKeyFile) cfg.interfaces));
 
       systemd.targets = mapAttrs' generateInterfaceTarget cfg.interfaces;
+
+      # TODO
+      systemd.network = mkIf useNetworkd {
+        # TODO: should we do this here or rely on it coming from elsewhere?
+        enable = true;
+
+        netdevs = mapAttrs' generateNetdev cfg.interfaces;
+        networks = mapAttrs generateNetwork cfg.interfaces;
+      };
+      # TODO: assertions
+
+      # TODO: should we even do this?
+      # TODO: gate it on useNetworkd?
+      networking.networkmanager.unmanaged = attrNames cfg.interfaces;
+
+
     }
   );
 
