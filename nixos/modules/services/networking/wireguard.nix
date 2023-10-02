@@ -508,101 +508,6 @@ let
       ns = last nsList;
     in
       if (length nsList > 0 && ns != "init") then ''ip netns exec "${ns}" "${cmd}"'' else cmd;
-
-  removeNulls = filterAttrs (_: v: v != null);
-
-  # TODO: check systemd.netdev(5) for any missing options we could add
-  # TODO: double-check how we should name these netdevs
-  generateNetdev = name: interface: nameValuePair "10-${name}" {
-    netdevConfig = removeNulls {
-      Kind = "wireguard";
-      Name = name;
-
-      # TODO: update description
-      MTUBytes = interface.mtu;
-    };
-    wireguardConfig = removeNulls {
-      PrivateKeyFile = interface.privateKeyFile; # TODO: assert that this exists, one way or the other
-      ListenPort = interface.listenPort; # TODO: test how this is rendered when null; is it missing, or set?
-
-      FirewallMark = interface.fwMark; # TODO: double-check handling of null value
-
-      # TODO: update description of 'table' option for precision
-      # TODO: see how this is rendered when missing (i.e. with mkIf) and switch to that if appropriate
-      # TODO: see if we should add a peer-level option, since systemd supports that
-      RouteTable = if interface.allowedIPsAsRoutes then interface.table else "off";
-      RouteMetric = interface.metric; # TODO: double-check null handling & defaults
-    };
-
-    # TODO
-    wireguardPeers = map generateWireguardPeer interface.peers;
-
-    # TODO: Is there any more we need?
-  };
-
-  # TODO: check systemd.netdev(5) for any missing options we could add
-  generateWireguardPeer = peer: {
-    # TODO
-    wireguardPeerConfig = removeNulls {
-      PublicKey = peer.publicKey;
-
-      # TODO: should we really support this??? maybe drop it. is it even supported by networkd in nixos?
-      # PresharedKey = peer.presharedKey; # TODO: double-check null handling
-      # TODO: systemd doesn't support, so do something about it
-
-      # TODO: double-check type, since this requires an absolute path
-      PresharedKeyFile = peer.presharedKeyFile; # TODO: double-check null handling
-
-      AllowedIPs = peer.allowedIPs;
-
-      # TODO: check null handling
-      # TODO: update option description for accuracy
-      Endpoint = peer.endpoint;
-
-      # TODO:
-      # - dynamicEndpointRefreshSeconds
-      # - dynamicEndpointRefreshRestartSeconds
-
-      # TODO: null handling
-      # TODO: consider changing the default to 0?
-      PersistentKeepalive = peer.persistentKeepalive;
-    };
-
-    # TODO: see about adding these in:
-    # - RouteTable
-    # - RouteMetric
-
-    # TODO: make sure it's okay that we DON'T use these from nixos:
-    # - name
-  };
-
-  generateNetwork = name: interface: {
-    # TODO: should we match on netdev instead?
-    matchConfig.Name = name;
-
-    # TODO: when useNetworkd, validate that IPs have subnet length things
-    address = interface.ips;
-
-    # dns
-    # domains
-
-    # TODO: populate
-  };
-
-  # TODO: assert privateKey not supported (...or support it, MEH)
-  # TODO: make sure generatePrivateKeyFile is still enabled (it should be compatible)
-
-  # TODO: See if we can actually support any of these, and assert warnings if not:
-  # - preSetup
-  # - postSetup
-  # - postShutdown
-
-
-  # TODO: see if it's possible to support these, or mark unsupported for now:
-  # - socketNamespace
-  # - interfaceNamespace
-  # - 
-
 in
 
 {
@@ -628,24 +533,6 @@ in
         default = cfg.interfaces != {};
         defaultText = literalExpression "config.${opt.interfaces} != { }";
         example = true;
-      };
-
-      useNetworkd = mkOption {
-        # TODO
-        description = lib.mdDoc ''
-        Whether to use networkd as the network configuration backend instead of
-        the legacy script-based system for Wireguard interfaces.
-        
-        ::: {.warning}
-        The networkd backend may have subtly different behavior than the legacy
-        script-based system. Use caution when enabling this option on a system
-        with an existing Wireguard configuration.
-        :::
-        '';
-        type = types.bool;
-        # TODO: use stateVersion to set this to default ON for newer releases!
-        default = config.networking.useNetworkd;
-        defaultText = literalExpression "config.networking.useNetworkd";
       };
 
       # TODO: update description here too
@@ -704,29 +591,15 @@ in
     boot.extraModulePackages = optional (versionOlder kernel.kernel.version "5.6") kernel.wireguard;
     environment.systemPackages = [ pkgs.wireguard-tools ];
 
-    systemd.services =
+    # TODO: pull generateKeyServiceUnit out of here
+    # TODO: heck pull all the legacy implementation out
+    systemd.services = mkIf (!cfg.useNetworkd) (
       (mapAttrs' generateInterfaceUnit cfg.interfaces)
       // (listToAttrs (map generatePeerUnit all_peers))
       // (mapAttrs' generateKeyServiceUnit
-      (filterAttrs (name: value: value.generatePrivateKeyFile) cfg.interfaces));
+      (filterAttrs (name: value: value.generatePrivateKeyFile) cfg.interfaces)));
 
-      systemd.targets = mapAttrs' generateInterfaceTarget cfg.interfaces;
-
-      # TODO
-      systemd.network = mkIf cfg.useNetworkd {
-        # TODO: should we do this here or rely on it coming from elsewhere?
-        enable = true;
-
-        netdevs = mapAttrs' generateNetdev cfg.interfaces;
-        networks = mapAttrs generateNetwork cfg.interfaces;
-      };
-      # TODO: assertions
-
-      # TODO: should we even do this?
-      # TODO: gate it on useNetworkd?
-      networking.networkmanager.unmanaged = attrNames cfg.interfaces;
-
-
+      systemd.targets = mkIf (!cfg.useNetworkd) (mapAttrs' generateInterfaceTarget cfg.interfaces);
     }
   );
 
