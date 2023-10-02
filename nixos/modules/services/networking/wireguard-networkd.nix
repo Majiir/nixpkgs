@@ -121,7 +121,7 @@ in
       ])));
 
     systemd.network = {
-      enable = true; # TODO: should we do this here or rely on it coming from elsewhere?
+      # enable = true; # TODO: should we do this here or rely on it coming from elsewhere?
       netdevs = mapAttrs' generateNetdev cfg.interfaces;
       networks = mapAttrs generateNetwork cfg.interfaces;
     };
