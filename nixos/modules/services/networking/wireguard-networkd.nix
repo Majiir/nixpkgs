@@ -6,30 +6,6 @@ let
 in
 {
 
-  options = {
-    networking.wireguard = {
-      useNetworkd = mkOption {
-        # TODO
-        description = mdDoc ''
-        Whether to use networkd as the network configuration backend instead of
-        the legacy script-based system for Wireguard interfaces.
-
-        This is enabled by default for systems with `stateVersion >= 24.05`.
-        
-        ::: {.warning}
-        Use caution when enabling this option on a system with an existing
-        Wireguard configuration. The networkd backend may have subtly different
-        behavior than the legacy script-based system. 
-        :::
-        '';
-        type = types.bool;
-        # networkd will be enabled for Wireguard by default in systems created with 24.05 or later.
-        default = config.networking.useNetworkd || (versionAtLeast config.system.stateVersion "24.05");
-        defaultText = literalExpression "config.networking.useNetworkd || (versionAtLeast config.system.stateVersion \"24.05\")";
-      };
-    };
-  };
-
   config = let
 
     cfg = config.networking.wireguard;
@@ -47,7 +23,7 @@ in
       };
       wireguardConfig = removeNulls {
         # TODO: update privateKeyFile description with warning about readable by systemd-network user
-        PrivateKeyFile = interface.privateKeyFile; # TODO: assert that this exists, one way or the other
+        PrivateKeyFile = interface.privateKeyFile;
         ListenPort = interface.listenPort;
         FirewallMark = interface.fwMark;
 
@@ -72,6 +48,8 @@ in
         Endpoint = peer.endpoint;
 
         PersistentKeepalive = peer.persistentKeepalive;
+
+        # TODO: networkd supports RouteTable and RouteMetric for each peer too.
       };
 
       # TODO: see about adding these in:
@@ -87,7 +65,7 @@ in
 
     # TODO: make sure generatePrivateKeyFile is still enabled (it should be compatible)
 
-  in mkIf (cfg.enable && cfg.useNetworkd) {
+  in mkIf (cfg.enable && config.networking.useNetworkd) {
     # TODO: assertions
     assertions =
       [
@@ -97,44 +75,48 @@ in
         # Interface assertions
         {
           assertion = interface.privateKey == null;
-          message = "networking.wireguard.interfaces.${name}.privateKey is not supported with networking.wireguard.useNetworkd. Use privateKeyFile instead.";
+          message = "networking.wireguard.interfaces.${name}.privateKey cannot be used with config.networking.useNetworkd. Use privateKeyFile instead.";
+        }
+        {
+          assertion = !interface.generatePrivateKeyFile;
+          message = "networking.wireguard.interfaces.${name}.generatePrivateKeyFile cannot be used with config.networking.useNetworkd.";
         }
         {
           assertion = interface.preSetup == "";
-          message = "networking.wireguard.interfaces.${name}.preSetup is not supported with networking.wireguard.useNetworkd.";
+          message = "networking.wireguard.interfaces.${name}.preSetup cannot be used with config.networking.useNetworkd.";
         }
         {
           assertion = interface.postSetup == "";
-          message = "networking.wireguard.interfaces.${name}.postSetup is not supported with networking.wireguard.useNetworkd.";
+          message = "networking.wireguard.interfaces.${name}.postSetup cannot be used with config.networking.useNetworkd.";
         }
         {
           assertion = interface.postShutdown == "";
-          message = "networking.wireguard.interfaces.${name}.postShutdown is not supported with networking.wireguard.useNetworkd.";
+          message = "networking.wireguard.interfaces.${name}.postShutdown cannot be used with config.networking.useNetworkd.";
         }
         {
           assertion = interface.socketNamespace == null;
-          message = "networking.wireguard.interfaces.${name}.socketNamespace is not (yet) supported with networking.wireguard.useNetworkd.";
+          message = "networking.wireguard.interfaces.${name}.socketNamespace cannot be used with config.networking.useNetworkd.";
         }
         {
           assertion = interface.interfaceNamespace == null;
-          message = "networking.wireguard.interfaces.${name}.interfaceNamespace is not (yet) supported with networking.wireguard.useNetworkd.";
+          message = "networking.wireguard.interfaces.${name}.interfaceNamespace cannot be used with config.networking.useNetworkd.";
         }
       ]
       ++ flip concatMap interface.peers (peer: [
         # Peer assertions
         {
           assertion = peer.presharedKey == null;
-          message = "networking.wireguard.interfaces.${name}.peers[].presharedKey is not supported with networking.wireguard.useNetworkd. Use presharedKeyFile instead.";
+          message = "networking.wireguard.interfaces.${name}.peers[].presharedKey cannot be used with config.networking.useNetworkd. Use presharedKeyFile instead.";
         }
         {
           # TODO: link to upstream systemd issues?
           assertion = peer.dynamicEndpointRefreshSeconds == 0;
-          message = "networking.wireguard.interfaces.${name}.peers[].dynamicEndpointRefreshSeconds is not supported with networking.wireguard.useNetworkd.";
+          message = "networking.wireguard.interfaces.${name}.peers[].dynamicEndpointRefreshSeconds cannot be used with config.networking.useNetworkd.";
         }
         {
           # TODO: link to upstream systemd issues?
           assertion = peer.dynamicEndpointRefreshRestartSeconds == null;
-          message = "networking.wireguard.interfaces.${name}.peers[].dynamicEndpointRefreshRestartSeconds is not supported with networking.wireguard.useNetworkd.";
+          message = "networking.wireguard.interfaces.${name}.peers[].dynamicEndpointRefreshRestartSeconds cannot be used with config.networking.useNetworkd.";
         }
       ])));
 

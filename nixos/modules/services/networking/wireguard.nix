@@ -310,6 +310,7 @@ let
     nameValuePair "wireguard-${name}-key"
       {
         description = "WireGuard Tunnel - ${name} - Key Generator";
+        # TODO: make this work more generically for networkd. (what even would the unit to wait for be?)
         wantedBy = [ "wireguard-${name}.service" ];
         requiredBy = [ "wireguard-${name}.service" ];
         before = [ "wireguard-${name}.service" ];
@@ -593,13 +594,13 @@ in
 
     # TODO: pull generateKeyServiceUnit out of here
     # TODO: heck pull all the legacy implementation out
-    systemd.services = mkIf (!cfg.useNetworkd) (
+    systemd.services = mkIf (!config.networking.useNetworkd) (
       (mapAttrs' generateInterfaceUnit cfg.interfaces)
       // (listToAttrs (map generatePeerUnit all_peers))
       // (mapAttrs' generateKeyServiceUnit
       (filterAttrs (name: value: value.generatePrivateKeyFile) cfg.interfaces)));
 
-      systemd.targets = mkIf (!cfg.useNetworkd) (mapAttrs' generateInterfaceTarget cfg.interfaces);
+      systemd.targets = mkIf (!config.networking.useNetworkd) (mapAttrs' generateInterfaceTarget cfg.interfaces);
     }
   );
 
