@@ -41,7 +41,6 @@ import ../make-test-python.nix ({ pkgs, lib, kernelPackages ? null, ...} :
           networking.wireguard.interfaces.wg0 = {
             ips = [ "10.23.42.2/32" "fc00::2/128" ];
             listenPort = 23542;
-            # allowedIPsAsRoutes = false;
 
             privateKeyFile = toString (pkgs.writeText "privateKey" wg-snakeoil-keys.peer1.privateKey);
 
@@ -52,11 +51,6 @@ import ../make-test-python.nix ({ pkgs, lib, kernelPackages ? null, ...} :
 
               inherit (wg-snakeoil-keys.peer0) publicKey;
             };
-
-            # postSetup = let inherit (pkgs) iproute2; in ''
-            #   ${iproute2}/bin/ip route replace 10.23.42.1/32 dev wg0
-            #   ${iproute2}/bin/ip route replace fc00::1/128 dev wg0
-            # '';
           };
         };
       };
@@ -65,8 +59,6 @@ import ../make-test-python.nix ({ pkgs, lib, kernelPackages ? null, ...} :
     testScript = ''
       start_all()
 
-      # TODO: this doesn't work for networkd
-      # TODO: update all the tests accordingly
       peer0.wait_for_unit("systemd-networkd-wait-online.service")
       peer1.wait_for_unit("systemd-networkd-wait-online.service")
 
