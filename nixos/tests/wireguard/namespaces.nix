@@ -13,7 +13,7 @@ let
 
 in
 
-import ../make-test-python.nix ({ pkgs, lib, kernelPackages ? null, useNetworkd ? false, ... } : {
+import ../make-test-python.nix ({ pkgs, lib, kernelPackages ? null, ... } : {
   name = "wireguard-with-namespaces";
   meta = with pkgs.lib.maintainers; {
     maintainers = [ asymmetric ];
@@ -24,7 +24,6 @@ import ../make-test-python.nix ({ pkgs, lib, kernelPackages ? null, useNetworkd 
     # and not moved from there
     peer0 = pkgs.lib.attrsets.recursiveUpdate node {
       boot = lib.mkIf (kernelPackages != null) { inherit kernelPackages; };
-      networking.wireguard.useNetworkd = useNetworkd;
       networking.wireguard.interfaces.wg0 = {
         preSetup = ''
           ip netns add ${socketNamespace}
@@ -36,7 +35,6 @@ import ../make-test-python.nix ({ pkgs, lib, kernelPackages ? null, useNetworkd 
     # and moved to the interfaceNamespace
     peer1 = pkgs.lib.attrsets.recursiveUpdate node {
       boot = lib.mkIf (kernelPackages != null) { inherit kernelPackages; };
-      networking.wireguard.useNetworkd = useNetworkd;
       networking.wireguard.interfaces.wg0 = {
         preSetup = ''
           ip netns add ${interfaceNamespace}
@@ -49,7 +47,6 @@ import ../make-test-python.nix ({ pkgs, lib, kernelPackages ? null, useNetworkd 
     # and moved to the interfaceNamespace
     peer2 = pkgs.lib.attrsets.recursiveUpdate node {
       boot = lib.mkIf (kernelPackages != null) { inherit kernelPackages; };
-      networking.wireguard.useNetworkd = useNetworkd;
       networking.wireguard.interfaces.wg0 = {
         preSetup = ''
           ip netns add ${socketNamespace}
@@ -62,7 +59,6 @@ import ../make-test-python.nix ({ pkgs, lib, kernelPackages ? null, useNetworkd 
     # and moved to the init namespace
     peer3 = pkgs.lib.attrsets.recursiveUpdate node {
       boot = lib.mkIf (kernelPackages != null) { inherit kernelPackages; };
-      networking.wireguard.useNetworkd = useNetworkd;
       networking.wireguard.interfaces.wg0 = {
         preSetup = ''
           ip netns add ${socketNamespace}

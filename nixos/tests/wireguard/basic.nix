@@ -1,4 +1,4 @@
-import ../make-test-python.nix ({ pkgs, lib, kernelPackages ? null, useNetworkd ? false, ...} :
+import ../make-test-python.nix ({ pkgs, lib, kernelPackages ? null, ...} :
   let
     wg-snakeoil-keys = import ./snakeoil-keys.nix;
     peer = (import ./make-peer.nix) { inherit lib; };
@@ -15,13 +15,12 @@ import ../make-test-python.nix ({ pkgs, lib, kernelPackages ? null, useNetworkd 
         ip6 = "fd00::1";
         extraConfig = {
           boot = lib.mkIf (kernelPackages != null) { inherit kernelPackages; };
-          networking.wireguard.useNetworkd = useNetworkd;
           networking.firewall.allowedUDPPorts = [ 23542 ];
           networking.wireguard.interfaces.wg0 = {
             ips = [ "10.23.42.1/32" "fc00::1/128" ];
             listenPort = 23542;
 
-            privateKeyFile = toString (pkgs.writeText "privateKey" wg-snakeoil-keys.peer0.privateKey);
+            inherit (wg-snakeoil-keys.peer0) privateKey;
 
             peers = lib.singleton {
               allowedIPs = [ "10.23.42.2/32" "fc00::2/128" ];
@@ -37,13 +36,12 @@ import ../make-test-python.nix ({ pkgs, lib, kernelPackages ? null, useNetworkd 
         ip6 = "fd00::2";
         extraConfig = {
           boot = lib.mkIf (kernelPackages != null) { inherit kernelPackages; };
-          networking.wireguard.useNetworkd = useNetworkd;
           networking.wireguard.interfaces.wg0 = {
             ips = [ "10.23.42.2/32" "fc00::2/128" ];
             listenPort = 23542;
             allowedIPsAsRoutes = false;
 
-            privateKeyFile = toString (pkgs.writeText "privateKey" wg-snakeoil-keys.peer1.privateKey);
+            inherit (wg-snakeoil-keys.peer1) privateKey;
 
             peers = lib.singleton {
               allowedIPs = [ "0.0.0.0/0" "::/0" ];
@@ -65,10 +63,8 @@ import ../make-test-python.nix ({ pkgs, lib, kernelPackages ? null, useNetworkd 
     testScript = ''
       start_all()
 
-      # TODO: this doesn't work for networkd
-      # TODO: update all the tests accordingly
-      peer0.wait_for_unit("${if useNetworkd then "systemd-networkd-wait-online.service" else "wireguard-wg0.service"}")
-      peer1.wait_for_unit("${if useNetworkd then "systemd-networkd-wait-online.service" else "wireguard-wg0.service"}")
+      peer0.wait_for_unit("wireguard-wg0.service")
+      peer1.wait_for_unit("wireguard-wg0.service")
 
       peer1.succeed("ping -c5 fc00::1")
       peer1.succeed("ping -c5 10.23.42.1")
