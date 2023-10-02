@@ -509,17 +509,17 @@ let
     in
       if (length nsList > 0 && ns != "init") then ''ip netns exec "${ns}" "${cmd}"'' else cmd;
 
-  removeNulls = mapAttrs (_: filterAttrs (_: v: v != null));
+  removeNulls = filterAttrs (_: v: v != null);
 
   # TODO: check systemd.netdev(5) for any missing options we could add
   # TODO: double-check how we should name these netdevs
   generateNetdev = name: interface: nameValuePair "10-${name}" {
     netdevConfig = removeNulls {
       Kind = "wireguard";
-      Name = trace "name: ${toString name}" name;
+      Name = name;
 
       # TODO: update description
-      MTUBytes = trace "mtu: ${toString interface.mtu}" interface.mtu;
+      MTUBytes = interface.mtu;
     };
     wireguardConfig = removeNulls {
       PrivateKeyFile = interface.privateKeyFile; # TODO: assert that this exists, one way or the other
@@ -547,7 +547,8 @@ let
       PublicKey = peer.publicKey;
 
       # TODO: should we really support this??? maybe drop it. is it even supported by networkd in nixos?
-      PresharedKey = peer.presharedKey; # TODO: double-check null handling
+      # PresharedKey = peer.presharedKey; # TODO: double-check null handling
+      # TODO: systemd doesn't support, so do something about it
 
       # TODO: double-check type, since this requires an absolute path
       PresharedKeyFile = peer.presharedKeyFile; # TODO: double-check null handling
