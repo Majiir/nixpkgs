@@ -75,48 +75,48 @@ in
         # Interface assertions
         {
           assertion = interface.privateKey == null;
-          message = "networking.wireguard.interfaces.${name}.privateKey cannot be used with config.networking.useNetworkd. Use privateKeyFile instead.";
+          message = "networking.wireguard.interfaces.${name}.privateKey cannot be used with networking.useNetworkd. Use privateKeyFile instead.";
         }
         {
           assertion = !interface.generatePrivateKeyFile;
-          message = "networking.wireguard.interfaces.${name}.generatePrivateKeyFile cannot be used with config.networking.useNetworkd.";
+          message = "networking.wireguard.interfaces.${name}.generatePrivateKeyFile cannot be used with networking.useNetworkd.";
         }
         {
           assertion = interface.preSetup == "";
-          message = "networking.wireguard.interfaces.${name}.preSetup cannot be used with config.networking.useNetworkd.";
+          message = "networking.wireguard.interfaces.${name}.preSetup cannot be used with networking.useNetworkd.";
         }
         {
           assertion = interface.postSetup == "";
-          message = "networking.wireguard.interfaces.${name}.postSetup cannot be used with config.networking.useNetworkd.";
+          message = "networking.wireguard.interfaces.${name}.postSetup cannot be used with networking.useNetworkd.";
         }
         {
           assertion = interface.postShutdown == "";
-          message = "networking.wireguard.interfaces.${name}.postShutdown cannot be used with config.networking.useNetworkd.";
+          message = "networking.wireguard.interfaces.${name}.postShutdown cannot be used with networking.useNetworkd.";
         }
         {
           assertion = interface.socketNamespace == null;
-          message = "networking.wireguard.interfaces.${name}.socketNamespace cannot be used with config.networking.useNetworkd.";
+          message = "networking.wireguard.interfaces.${name}.socketNamespace cannot be used with networking.useNetworkd.";
         }
         {
           assertion = interface.interfaceNamespace == null;
-          message = "networking.wireguard.interfaces.${name}.interfaceNamespace cannot be used with config.networking.useNetworkd.";
+          message = "networking.wireguard.interfaces.${name}.interfaceNamespace cannot be used with networking.useNetworkd.";
         }
       ]
       ++ flip concatMap interface.peers (peer: [
         # Peer assertions
         {
           assertion = peer.presharedKey == null;
-          message = "networking.wireguard.interfaces.${name}.peers[].presharedKey cannot be used with config.networking.useNetworkd. Use presharedKeyFile instead.";
+          message = "networking.wireguard.interfaces.${name}.peers[].presharedKey cannot be used with networking.useNetworkd. Use presharedKeyFile instead.";
         }
         {
           # TODO: link to upstream systemd issues?
           assertion = peer.dynamicEndpointRefreshSeconds == 0;
-          message = "networking.wireguard.interfaces.${name}.peers[].dynamicEndpointRefreshSeconds cannot be used with config.networking.useNetworkd.";
+          message = "networking.wireguard.interfaces.${name}.peers[].dynamicEndpointRefreshSeconds cannot be used with networking.useNetworkd.";
         }
         {
           # TODO: link to upstream systemd issues?
           assertion = peer.dynamicEndpointRefreshRestartSeconds == null;
-          message = "networking.wireguard.interfaces.${name}.peers[].dynamicEndpointRefreshRestartSeconds cannot be used with config.networking.useNetworkd.";
+          message = "networking.wireguard.interfaces.${name}.peers[].dynamicEndpointRefreshRestartSeconds cannot be used with networking.useNetworkd.";
         }
       ])));
 
