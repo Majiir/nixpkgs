@@ -38,6 +38,11 @@ let
       "--bin=codelldb"
     ];
 
+    postFixup = ''
+      wrapProgram $out/bin/codelldb \
+        --set-default LLDB_DEBUGSERVER_PATH "${lldb.out}/bin/lldb-server"
+    '';
+
     patches = [ ./adapter-output-shared_object.patch ];
 
     # Tests are linked to liblldb but it is not available here.
@@ -126,7 +131,18 @@ in stdenv.mkDerivation {
   '';
 
   passthru = {
-    inherit lldb adapter;
+    inherit lldb;
+    adapter = adapter.overrideAttrs (oa: {
+      postFixup = ''
+        wrapProgram $out/bin/codelldb \
+          --set-default LLDB_DEBUGSERVER_PATH "${lldb.out}/bin/lldb-server" \
+          --add-flags "--liblldb" --add-flags "${lldb.lib}/lib/liblldb.so"
+        # XXX: codelldb expects libcodelldb.so to be in the same
+        # directory as the executable, and can't find it in $out/lib.
+        # This is necessary to make codelldb executable as a standalone.
+        ln -s $out/lib/libcodelldb.so $out/bin/libcodelldb.so
+      '';
+    });
     updateScript = ./update.sh;
   };
 
