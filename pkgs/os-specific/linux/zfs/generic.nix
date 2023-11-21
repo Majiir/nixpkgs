@@ -54,7 +54,14 @@ stdenv'.mkDerivation {
     inherit rev sha256;
   };
 
-  patches = extraPatches;
+  patches = [
+    # Apply block cloning patch
+    # See: https://github.com/openzfs/zfs/pull/15544#discussion_r1399900149
+    (fetchpatch {
+      url = "https://github.com/openzfs/zfs/compare/cd67bc0ae470776b8bb6949a689822c4b9acbe35..6001dad106a402ca886bde866a3ab07eb342ca10.patch";
+      sha256 = "sha256-UK9J7g1QPtqmYaElctLojsoZ4kDsLLZWCj0vqkXmVns=";
+    })
+  ] ++ extraPatches;
 
   postPatch = optionalString buildKernel ''
     patchShebangs scripts
