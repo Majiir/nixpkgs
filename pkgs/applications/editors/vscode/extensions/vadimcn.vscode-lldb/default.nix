@@ -41,6 +41,8 @@ let
     postFixup = ''
       wrapProgram $out/bin/codelldb \
         --set-default LLDB_DEBUGSERVER_PATH "${lldb.out}/bin/lldb-server"
+
+      ln -s $out/lib/libcodelldb.so $out/bin/libcodelldb.so
     '';
 
     patches = [ ./adapter-output-shared_object.patch ];
@@ -111,7 +113,7 @@ in stdenv.mkDerivation {
 
     mkdir -p $ext/{adapter,formatters}
     mv -t $ext vsix-extracted/extension/*
-    cp -t $ext/adapter ${adapter}/{bin,lib}/*
+    cp -t $ext/adapter ${adapter}/bin/*
     cp -r ../adapter/scripts $ext/adapter
     wrapProgram $ext/adapter/codelldb \
       --set-default LLDB_DEBUGSERVER_PATH "${lldb.out}/bin/lldb-server"
