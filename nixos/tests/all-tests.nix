@@ -996,4 +996,6 @@ in {
   zrepl = handleTest ./zrepl.nix {};
   zsh-history = handleTest ./zsh-history.nix {};
   zwave-js = handleTest ./zwave-js.nix {};
+
+  dot-mount-reproducer = handleTest ./dot-mount-reproducer.nix {};
 }
