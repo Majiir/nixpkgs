@@ -18,12 +18,12 @@
 
 stdenv.mkDerivation rec {
   pname = "tplink-escu";
-  version = "1.3.10";
+  version = "1.3.17";
   fullVersion = "${version}.0";
 
   src = fetchurl {
-    url = "https://static.tp-link.com/upload/software/2022/202204/20220412/Easy%20Smart%20Configuration%20Utility%20v${fullVersion}.zip";
-    hash = "sha256-9T3Ln1vRBZRr+ImQfZxgTXKmjr1ECfZdeRaxkOJfF+g=";
+    url = "https://static.tp-link.com/upload/software/2023/202312/20231228/Easy%20Smart%20Configuration%20Utility%20v${fullVersion}.exe.zip";
+    hash = "sha256-aVlwRHQ9jOTM4wq6fu6qO2EFvYzfb7scDxck27w507g=";
   };
 
   nativeBuildInputs = [
