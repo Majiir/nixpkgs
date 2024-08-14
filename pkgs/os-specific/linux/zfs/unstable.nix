@@ -25,7 +25,6 @@ callPackage ./generic.nix args {
   version = "2.2.4";
   # rev = "";
 
-  isUnstable = true;
   tests = [
     nixosTests.zfs.unstable
   ];
