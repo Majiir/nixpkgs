@@ -200,7 +200,7 @@ let
     outputs = [ "out" ] ++ optionals buildUser [ "dev" ];
 
     passthru = {
-      inherit enableMail kernelModuleAttribute;
+      inherit enableMail kernelModuleAttribute kernelCompatible;
       latestCompatibleLinuxPackages = lib.pipe linuxKernel.packages [
         builtins.attrValues
         (builtins.filter (kPkgs: (builtins.tryEval kPkgs).success && kPkgs ? kernel && kPkgs.kernel.passthru.isVanilla && kernelCompatible kPkgs.kernel))
