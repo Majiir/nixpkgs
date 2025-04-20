@@ -556,6 +556,11 @@ in
                                 boot.isContainer = true;
                                 networking.hostName = mkDefault name;
                                 networking.useDHCP = false;
+
+                                # Add empty configuration for each interface. Ensures that any modules using
+                                # the attrNames of networking.interfaces set up the interfaces correctly.
+                                networking.interfaces = genAttrs (optional config.privateNetwork "eth0" ++ attrNames config.extraVeths) (_: {});
+
                                 assertions = [
                                   {
                                     assertion =
