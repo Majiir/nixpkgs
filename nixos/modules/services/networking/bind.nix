@@ -324,7 +324,7 @@ in
         ConfigurationDirectory = "bind";
         ReadWritePaths = [
           (lib.mapAttrsToList (
-            name: config: if (lib.hasPrefix "/" config.file) then ("-${dirOf config.file}") else ""
+            name: config: "-${config.file}"
           ) cfg.zones)
           cfg.directory
         ];
@@ -333,7 +333,7 @@ in
         # Security
         NoNewPrivileges = true;
         # Sandboxing
-        ProtectSystem = "strict";
+        ProtectSystem = "full";
         ReadOnlyPaths = "/sys";
         ProtectHome = true;
         PrivateTmp = true;
@@ -356,7 +356,7 @@ in
         RestrictNamespaces = true;
         # System Call Filtering
         SystemCallArchitectures = "native";
-        SystemCallFilter = "~@mount @debug @clock @reboot @resources @privileged @obsolete acct modify_ldt add_key adjtimex clock_adjtime delete_module fanotify_init finit_module get_mempolicy init_module io_destroy io_getevents iopl ioperm io_setup io_submit io_cancel kcmp kexec_load keyctl lookup_dcookie migrate_pages move_pages open_by_handle_at perf_event_open process_vm_readv process_vm_writev ptrace remap_file_pages request_key set_mempolicy swapoff swapon uselib vmsplice";
+        SystemCallFilter = "~@mount @debug @clock @reboot acct modify_ldt add_key adjtimex clock_adjtime delete_module fanotify_init finit_module get_mempolicy init_module io_destroy io_getevents iopl ioperm io_setup io_submit io_cancel kcmp kexec_load keyctl lookup_dcookie migrate_pages move_pages open_by_handle_at perf_event_open process_vm_readv process_vm_writev ptrace remap_file_pages request_key set_mempolicy swapoff swapon uselib vmsplice";
       };
 
       unitConfig.Documentation = "man:named(8)";
