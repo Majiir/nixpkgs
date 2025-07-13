@@ -4603,6 +4603,10 @@ with pkgs;
 
   torsocks = callPackage ../tools/security/tor/torsocks.nix { };
 
+  tpm2-totp-with-plymouth = tpm2-totp.override {
+    withPlymouth = true;
+  };
+
   trackma-curses = trackma.override { withCurses = true; };
 
   trackma-gtk = trackma.override { withGTK = true; };
