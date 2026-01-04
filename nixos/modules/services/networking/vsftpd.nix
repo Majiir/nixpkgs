@@ -336,24 +336,21 @@ in
 
     security.pam.services.vsftpd = mkIf (cfg.enableVirtualUsers && cfg.userDbPath != null) {
       useDefaultRules = false;
-      rules = {
-        auth = utils.pam.autoOrderRules [
-          {
-            name = "userdb";
-            control = "required";
-            modulePath = "${config.security.pam.package}/lib/security/pam_userdb.so";
-            settings.db = cfg.userDbPath;
-          }
-        ];
-        account = utils.pam.autoOrderRules [
-          {
-            name = "userdb";
-            control = "required";
-            modulePath = "${config.security.pam.package}/lib/security/pam_userdb.so";
-            settings.db = cfg.userDbPath;
-          }
-        ];
-      };
+      rules =
+        let
+          rules = utils.pam.autoOrderRules [
+            {
+              name = "userdb";
+              control = "required";
+              modulePath = "${config.security.pam.package}/lib/security/pam_userdb.so";
+              settings.db = cfg.userDbPath;
+            }
+          ];
+        in
+        {
+          auth = rules;
+          account = rules;
+        };
     };
   };
 }
