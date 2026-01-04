@@ -297,6 +297,17 @@ in
             args = "";
           }
         ];
+        account = utils.pam.autoOrderRules [
+          {
+            name = "time";
+            # https://github.com/elementary/switchboard-plug-parental-controls/blob/8.0.1/src/daemon/Server.vala#L325
+            enable = config.services.pantheon.parental-controls.enable;
+            control = "required";
+            modulePath = "${config.security.pam.package}/lib/security/pam_time.so";
+            # Must specify conffile since pam_time defaults to ${linux-pam}/etc/security/time.conf.
+            args = "conffile=/etc/security/time.conf";
+          }
+        ];
         password = utils.pam.autoOrderRules [
           {
             name = "login";
@@ -311,17 +322,6 @@ in
             control = "include";
             modulePath = "login";
             args = "";
-          }
-        ];
-        account = utils.pam.autoOrderRules [
-          {
-            name = "time";
-            # https://github.com/elementary/switchboard-plug-parental-controls/blob/8.0.1/src/daemon/Server.vala#L325
-            enable = config.services.pantheon.parental-controls.enable;
-            control = "required";
-            modulePath = "${config.security.pam.package}/lib/security/pam_time.so";
-            # Must specify conffile since pam_time defaults to ${linux-pam}/etc/security/time.conf.
-            args = "conffile=/etc/security/time.conf";
           }
         ];
     '';
