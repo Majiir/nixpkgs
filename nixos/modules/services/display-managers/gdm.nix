@@ -392,7 +392,13 @@ in
               name = "gdm-user";
               control = "required";
               modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
-              args = "audit quiet_success user ingroup gdm";
+              args = [
+                "audit"
+                "quiet_success"
+                "user"
+                "ingroup"
+                "gdm"
+              ];
             }
             {
               name = "permit";
@@ -406,7 +412,13 @@ in
               name = "gdm-user";
               control = "required";
               modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
-              args = "audit quiet_success user ingroup gdm";
+              args = [
+                "audit"
+                "quiet_success"
+                "user"
+                "ingroup"
+                "gdm"
+              ];
             }
             {
               name = "unix";
@@ -428,13 +440,22 @@ in
               name = "gdm-user";
               control = "required";
               modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
-              args = "audit quiet_success user ingroup gdm";
+              args = [
+                "audit"
+                "quiet_success"
+                "user"
+                "ingroup"
+                "gdm"
+              ];
             }
             {
               name = "env";
               control = "required";
               modulePath = "${config.security.pam.package}/lib/security/pam_env.so";
-              args = "conffile=/etc/pam/environment readenv=0";
+              args = [
+                "conffile=/etc/pam/environment"
+                "readenv=0"
+              ];
             }
             {
               name = "systemd";
@@ -445,7 +466,10 @@ in
               name = "keyinit";
               control = "optional";
               modulePath = "${config.security.pam.package}/lib/security/pam_keyinit.so";
-              args = "force revoke";
+              args = [
+                "force"
+                "revoke"
+              ];
             }
             {
               name = "permit";
@@ -503,7 +527,12 @@ in
               name = "gdm-normal-user";
               control = "required";
               modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
-              args = "uid >= 1000 quiet";
+              args = [
+                "uid"
+                ">="
+                "1000"
+                "quiet"
+              ];
             }
             {
               name = "gdm";
@@ -537,7 +566,10 @@ in
               name = "unix";
               control = "requisite";
               modulePath = "${config.security.pam.package}/lib/security/pam_unix.so";
-              args = "nullok yescrypt";
+              args = [
+                "nullok"
+                "yescrypt"
+              ];
             }
           ];
 
@@ -546,7 +578,9 @@ in
               name = "keyinit";
               control = "optional";
               modulePath = "${config.security.pam.package}/lib/security/pam_keyinit.so";
-              args = "revoke";
+              args = [
+                "revoke"
+              ];
             }
             {
               name = "login";
@@ -579,7 +613,9 @@ in
               name = "faillock";
               control = "requisite";
               modulePath = "${config.security.pam.package}/lib/security/pam_faillock.so";
-              args = "preauth";
+              args = [
+                "preauth"
+              ];
             }
             {
               name = "fprintd";
@@ -590,7 +626,10 @@ in
               name = "env";
               control = "required";
               modulePath = "${config.security.pam.package}/lib/security/pam_env.so";
-              args = "conffile=/etc/pam/environment readenv=0";
+              args = [
+                "conffile=/etc/pam/environment"
+                "readenv=0"
+              ];
             }
             {
               name = "gdm";

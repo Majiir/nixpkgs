@@ -342,7 +342,9 @@ in
             name = "userdb";
             control = "required";
             modulePath = "${config.security.pam.package}/lib/security/pam_userdb.so";
-            args = "db=${cfg.userDbPath}";
+            args = [
+              "db=${cfg.userDbPath}"
+            ];
           }
         ];
         account = utils.pam.autoOrderRules [
@@ -350,7 +352,9 @@ in
             name = "userdb";
             control = "required";
             modulePath = "${config.security.pam.package}/lib/security/pam_userdb.so";
-            args = "db=${cfg.userDbPath}";
+            args = [
+              "db=${cfg.userDbPath}"
+            ];
           }
         ];
       };

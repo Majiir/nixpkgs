@@ -303,7 +303,9 @@ in
             control = "required";
             modulePath = "${config.security.pam.package}/lib/security/pam_time.so";
             # Must specify conffile since pam_time defaults to ${linux-pam}/etc/security/time.conf.
-            args = "conffile=/etc/security/time.conf";
+            args = [
+              "conffile=/etc/security/time.conf"
+            ];
           }
         ];
         password = utils.pam.autoOrderRules [
@@ -331,7 +333,13 @@ in
             name = "lightdm-user";
             control = "required";
             modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
-            args = "audit quiet_success user = lightdm";
+            args = [
+              "audit"
+              "quiet_success"
+              "user"
+              "="
+              "lightdm"
+            ];
           }
           {
             name = "permit";
@@ -345,7 +353,13 @@ in
             name = "lightdm-user";
             control = "required";
             modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
-            args = "audit quiet_success user = lightdm";
+            args = [
+              "audit"
+              "quiet_success"
+              "user"
+              "="
+              "lightdm"
+            ];
           }
           {
             name = "unix";
@@ -367,13 +381,22 @@ in
             name = "lightdm-user";
             control = "required";
             modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
-            args = "audit quiet_success user = lightdm";
+            args = [
+              "audit"
+              "quiet_success"
+              "user"
+              "="
+              "lightdm"
+            ];
           }
           {
             name = "env";
             control = "required";
             modulePath = "${config.security.pam.package}/lib/security/pam_env.so";
-            args = "conffile=/etc/pam/environment readenv=0";
+            args = [
+              "conffile=/etc/pam/environment"
+              "readenv=0"
+            ];
           }
           {
             name = "systemd";
@@ -384,7 +407,10 @@ in
             name = "keyinit";
             control = "optional";
             modulePath = "${config.security.pam.package}/lib/security/pam_keyinit.so";
-            args = "force revoke";
+            args = [
+              "force"
+              "revoke"
+            ];
           }
           {
             name = "permit";
@@ -408,7 +434,12 @@ in
             name = "lightdm-normal-user";
             control = "required";
             modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
-            args = "uid >= 1000 quiet";
+            args = [
+              "uid"
+              ">="
+              "1000"
+              "quiet"
+            ];
           }
           {
             name = "permit";
@@ -430,7 +461,10 @@ in
             name = "unix";
             control = "requisite";
             modulePath = "${config.security.pam.package}/lib/security/pam_unix.so";
-            args = "nullok yescrypt";
+            args = [
+              "nullok"
+              "yescrypt"
+            ];
           }
         ];
 
@@ -439,7 +473,9 @@ in
             name = "keyinit";
             control = "optional";
             modulePath = "${config.security.pam.package}/lib/security/pam_keyinit.so";
-            args = "revoke";
+            args = [
+              "revoke"
+            ];
           }
           {
             name = "login";

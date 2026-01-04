@@ -119,7 +119,12 @@ in
               name = "ly-normal-user";
               control = "required";
               modulePath = "pam_succeed_if.so";
-              args = "uid >= 1000 quiet";
+              args = [
+                "uid"
+                ">="
+                "1000"
+                "quiet"
+              ];
             }
             {
               name = "permit";

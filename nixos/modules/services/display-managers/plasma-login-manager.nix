@@ -167,7 +167,10 @@ in
               name = "env";
               control = "required";
               modulePath = "pam_env.so";
-              args = "conffile=/etc/pam/environment readenv=0";
+              args = [
+                "conffile=/etc/pam/environment"
+                "readenv=0"
+              ];
             }
             {
               # Always let the greeter start without authentication
