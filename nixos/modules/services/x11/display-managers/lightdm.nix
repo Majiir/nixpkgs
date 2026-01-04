@@ -288,7 +288,6 @@ in
             name = "login";
             control = "substack";
             modulePath = "login";
-            args = "";
           }
         ];
         account = utils.pam.autoOrderRules [
@@ -296,7 +295,6 @@ in
             name = "login";
             control = "include";
             modulePath = "login";
-            args = "";
           }
           {
             name = "time";
@@ -313,7 +311,6 @@ in
             name = "login";
             control = "substack";
             modulePath = "login";
-            args = "";
           }
         ];
         session = utils.pam.autoOrderRules [
@@ -321,7 +318,6 @@ in
             name = "login";
             control = "include";
             modulePath = "login";
-            args = "";
           }
         ];
       };
@@ -341,7 +337,6 @@ in
             name = "permit";
             control = "optional";
             modulePath = "${config.security.pam.package}/lib/security/pam_permit.so";
-            args = "";
           }
         ];
 
@@ -356,7 +351,6 @@ in
             name = "unix";
             control = "sufficient";
             modulePath = "${config.security.pam.package}/lib/security/pam_unix.so";
-            args = "";
           }
         ];
 
@@ -365,7 +359,6 @@ in
             name = "deny";
             control = "required";
             modulePath = "${config.security.pam.package}/lib/security/pam_deny.so";
-            args = "";
           }
         ];
 
@@ -386,7 +379,6 @@ in
             name = "systemd";
             control = "optional";
             modulePath = "${config.systemd.package}/lib/security/pam_systemd.so";
-            args = "";
           }
           {
             name = "keyinit";
@@ -398,7 +390,6 @@ in
             name = "permit";
             control = "optional";
             modulePath = "${config.security.pam.package}/lib/security/pam_permit.so";
-            args = "";
           }
         ];
       };
@@ -412,7 +403,6 @@ in
             name = "nologin";
             control = "requisite";
             modulePath = "${config.security.pam.package}/lib/security/pam_nologin.so";
-            args = "";
           }
           {
             name = "succeed_if";
@@ -424,7 +414,6 @@ in
             name = "permit";
             control = "required";
             modulePath = "${config.security.pam.package}/lib/security/pam_permit.so";
-            args = "";
           }
         ];
 
@@ -433,7 +422,6 @@ in
             name = "unix";
             control = "sufficient";
             modulePath = "${config.security.pam.package}/lib/security/pam_unix.so";
-            args = "";
           }
         ];
 
@@ -457,7 +445,6 @@ in
             name = "login";
             control = "include";
             modulePath = "login";
-            args = "";
           }
         ];
       };

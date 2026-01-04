@@ -122,7 +122,6 @@ in
             name = "unix";
             control = "required";
             modulePath = "${config.security.pam.package}/lib/security/pam_unix.so";
-            args = "";
           }
         ];
         session = utils.pam.autoOrderRules [
@@ -130,7 +129,6 @@ in
             name = "unix";
             control = "required";
             modulePath = "${config.security.pam.package}/lib/security/pam_unix.so";
-            args = "";
           }
           {
             name = "env";
@@ -142,7 +140,6 @@ in
             name = "systemd";
             control = "required";
             modulePath = "${config.systemd.package}/lib/security/pam_systemd.so";
-            args = "";
           }
         ];
       };

@@ -2556,13 +2556,11 @@ in
               name = "warn";
               control = "required";
               modulePath = "${package}/lib/security/pam_warn.so";
-              args = "";
             }
             {
               name = "deny";
               control = "required";
               modulePath = "${package}/lib/security/pam_deny.so";
-              args = "";
             }
           ];
           account = utils.pam.autoOrderRules [
@@ -2570,13 +2568,11 @@ in
               name = "warn";
               control = "required";
               modulePath = "${package}/lib/security/pam_warn.so";
-              args = "";
             }
             {
               name = "deny";
               control = "required";
               modulePath = "${package}/lib/security/pam_deny.so";
-              args = "";
             }
           ];
           password = utils.pam.autoOrderRules [
@@ -2584,13 +2580,11 @@ in
               name = "warn";
               control = "required";
               modulePath = "${package}/lib/security/pam_warn.so";
-              args = "";
             }
             {
               name = "deny";
               control = "required";
               modulePath = "${package}/lib/security/pam_deny.so";
-              args = "";
             }
           ];
           session = utils.pam.autoOrderRules [
@@ -2598,13 +2592,11 @@ in
               name = "warn";
               control = "required";
               modulePath = "${package}/lib/security/pam_warn.so";
-              args = "";
             }
             {
               name = "deny";
               control = "required";
               modulePath = "${package}/lib/security/pam_deny.so";
-              args = "";
             }
           ];
         };

@@ -114,7 +114,6 @@ in
               name = "nologin";
               control = "requisite";
               modulePath = "pam_nologin.so";
-              args = "";
             }
             {
               name = "succeed_if";
@@ -126,7 +125,6 @@ in
               name = "permit";
               control = "required";
               modulePath = "pam_permit.so";
-              args = "";
             }
           ];
 
@@ -135,7 +133,6 @@ in
               name = "ly";
               control = "include";
               modulePath = "ly";
-              args = "";
             }
           ];
 
@@ -144,7 +141,6 @@ in
               name = "ly";
               control = "include";
               modulePath = "ly";
-              args = "";
             }
           ];
 
@@ -153,7 +149,6 @@ in
               name = "ly";
               control = "include";
               modulePath = "ly";
-              args = "";
             }
           ];
         };

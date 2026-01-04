@@ -92,7 +92,6 @@ in
               name = "login";
               control = "substack";
               modulePath = "login";
-              args = "";
             }
           ];
           account = utils.pam.autoOrderRules [
@@ -100,7 +99,6 @@ in
               name = "login";
               control = "include";
               modulePath = "login";
-              args = "";
             }
           ];
           password = utils.pam.autoOrderRules [
@@ -108,7 +106,6 @@ in
               name = "login";
               control = "substack";
               modulePath = "login";
-              args = "";
             }
           ];
           session = utils.pam.autoOrderRules [
@@ -116,7 +113,6 @@ in
               name = "login";
               control = "include";
               modulePath = "login";
-              args = "";
             }
           ];
         };
@@ -130,13 +126,11 @@ in
               name = "nologin";
               control = "requisite";
               modulePath = "pam_nologin.so";
-              args = "";
             }
             {
               name = "permit";
               control = "required";
               modulePath = "pam_permit.so";
-              args = "";
             }
           ];
 
@@ -145,7 +139,6 @@ in
               name = "plasmalogin";
               control = "include";
               modulePath = "plasmalogin";
-              args = "";
             }
           ];
           password = utils.pam.autoOrderRules [
@@ -153,7 +146,6 @@ in
               name = "plasmalogin";
               control = "include";
               modulePath = "plasmalogin";
-              args = "";
             }
           ];
           session = utils.pam.autoOrderRules [
@@ -161,7 +153,6 @@ in
               name = "plasmalogin";
               control = "include";
               modulePath = "plasmalogin";
-              args = "";
             }
           ];
         };
@@ -183,7 +174,6 @@ in
               name = "permit";
               control = "required";
               modulePath = "pam_permit.so";
-              args = "";
             }
           ];
 
@@ -193,7 +183,6 @@ in
               name = "permit";
               control = "required";
               modulePath = "pam_permit.so";
-              args = "";
             }
           ];
 
@@ -203,7 +192,6 @@ in
               name = "deny";
               control = "required";
               modulePath = "pam_deny.so";
-              args = "";
             }
           ];
 
@@ -213,13 +201,11 @@ in
               name = "unix";
               control = "required";
               modulePath = "pam_unix.so";
-              args = "";
             }
             {
               name = "systemd";
               control = "optional";
               modulePath = "${config.systemd.package}/lib/security/pam_systemd.so";
-              args = "";
             }
           ];
         };

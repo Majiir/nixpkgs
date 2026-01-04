@@ -398,7 +398,6 @@ in
               name = "permit";
               control = "optional";
               modulePath = "${config.security.pam.package}/lib/security/pam_permit.so";
-              args = "";
             }
           ];
 
@@ -413,7 +412,6 @@ in
               name = "unix";
               control = "sufficient";
               modulePath = "${config.security.pam.package}/lib/security/pam_unix.so";
-              args = "";
             }
           ];
 
@@ -422,7 +420,6 @@ in
               name = "deny";
               control = "required";
               modulePath = "${config.security.pam.package}/lib/security/pam_deny.so";
-              args = "";
             }
           ];
 
@@ -443,7 +440,6 @@ in
               name = "systemd";
               control = "optional";
               modulePath = "${config.systemd.package}/lib/security/pam_systemd.so";
-              args = "";
             }
             {
               name = "keyinit";
@@ -455,7 +451,6 @@ in
               name = "permit";
               control = "optional";
               modulePath = "${config.security.pam.package}/lib/security/pam_permit.so";
-              args = "";
             }
           ];
         };
@@ -469,7 +464,6 @@ in
               name = "login";
               control = "substack";
               modulePath = "login";
-              args = "";
             }
           ];
           account = utils.pam.autoOrderRules [
@@ -477,7 +471,6 @@ in
               name = "login";
               control = "include";
               modulePath = "login";
-              args = "";
             }
           ];
           password = utils.pam.autoOrderRules [
@@ -485,7 +478,6 @@ in
               name = "login";
               control = "substack";
               modulePath = "login";
-              args = "";
             }
           ];
           session = utils.pam.autoOrderRules [
@@ -493,7 +485,6 @@ in
               name = "login";
               control = "include";
               modulePath = "login";
-              args = "";
             }
           ];
         };
@@ -507,7 +498,6 @@ in
               name = "nologin";
               control = "requisite";
               modulePath = "${config.security.pam.package}/lib/security/pam_nologin.so";
-              args = "";
             }
             {
               name = "succeed_if";
@@ -520,20 +510,17 @@ in
               enable = pamLogin.enable && pamLogin.enableGnomeKeyring;
               control = "[success=ok default=1]";
               modulePath = "${gdm}/lib/security/pam_gdm.so";
-              args = "";
             }
             {
               name = "gnome_keyring";
               enable = pamLogin.enable && pamLogin.enableGnomeKeyring;
               control = "optional";
               modulePath = "${pkgs.gnome-keyring}/lib/security/pam_gnome_keyring.so";
-              args = "";
             }
             {
               name = "permit";
               control = "required";
               modulePath = "${config.security.pam.package}/lib/security/pam_permit.so";
-              args = "";
             }
           ];
 
@@ -542,7 +529,6 @@ in
               name = "unix";
               control = "sufficient";
               modulePath = "${config.security.pam.package}/lib/security/pam_unix.so";
-              args = "";
             }
           ];
 
@@ -566,7 +552,6 @@ in
               name = "login";
               control = "include";
               modulePath = "login";
-              args = "";
             }
           ];
         };
@@ -584,13 +569,11 @@ in
               name = "shells";
               control = "required";
               modulePath = "${config.security.pam.package}/lib/security/pam_shells.so";
-              args = "";
             }
             {
               name = "nologin";
               control = "requisite";
               modulePath = "${config.security.pam.package}/lib/security/pam_nologin.so";
-              args = "";
             }
             {
               name = "faillock";
@@ -602,7 +585,6 @@ in
               name = "fprintd";
               control = "required";
               modulePath = "${pkgs.fprintd}/lib/security/pam_fprintd.so";
-              args = "";
             }
             {
               name = "env";
@@ -615,14 +597,12 @@ in
               enable = pamLogin.enable && pamLogin.enableGnomeKeyring;
               control = "[success=ok default=1]";
               modulePath = "${gdm}/lib/security/pam_gdm.so";
-              args = "";
             }
             {
               name = "gnome_keyring";
               enable = pamLogin.enable && pamLogin.enableGnomeKeyring;
               control = "optional";
               modulePath = "${pkgs.gnome-keyring}/lib/security/pam_gnome_keyring.so";
-              args = "";
             }
           ];
 
@@ -631,7 +611,6 @@ in
               name = "login";
               control = "include";
               modulePath = "login";
-              args = "";
             }
           ];
 
@@ -640,7 +619,6 @@ in
               name = "deny";
               control = "required";
               modulePath = "${config.security.pam.package}/lib/security/pam_deny.so";
-              args = "";
             }
           ];
 
@@ -649,7 +627,6 @@ in
               name = "login";
               control = "include";
               modulePath = "login";
-              args = "";
             }
           ];
         };
