@@ -408,7 +408,7 @@ in
         rules = {
           auth = utils.pam.autoOrderRules [
             {
-              name = "succeed_if";
+              name = "sddm-user";
               control = "required";
               modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
               args = "audit quiet_success user = sddm";
@@ -422,7 +422,7 @@ in
 
           account = utils.pam.autoOrderRules [
             {
-              name = "succeed_if";
+              name = "sddm-user";
               control = "required";
               modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
               args = "audit quiet_success user = sddm";
@@ -444,7 +444,7 @@ in
 
           session = utils.pam.autoOrderRules [
             {
-              name = "succeed_if";
+              name = "sddm-user";
               control = "required";
               modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
               args = "audit quiet_success user = sddm";
@@ -485,7 +485,7 @@ in
               modulePath = "${config.security.pam.package}/lib/security/pam_nologin.so";
             }
             {
-              name = "succeed_if";
+              name = "sddm-autologin-user";
               control = "required";
               modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
               args = "uid >= ${toString cfg.autoLogin.minimumUid} quiet";

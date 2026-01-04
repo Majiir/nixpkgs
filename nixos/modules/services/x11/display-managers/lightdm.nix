@@ -328,7 +328,7 @@ in
       rules = {
         auth = utils.pam.autoOrderRules [
           {
-            name = "succeed_if";
+            name = "lightdm-user";
             control = "required";
             modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
             args = "audit quiet_success user = lightdm";
@@ -342,7 +342,7 @@ in
 
         account = utils.pam.autoOrderRules [
           {
-            name = "succeed_if";
+            name = "lightdm-user";
             control = "required";
             modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
             args = "audit quiet_success user = lightdm";
@@ -364,7 +364,7 @@ in
 
         session = utils.pam.autoOrderRules [
           {
-            name = "succeed_if";
+            name = "lightdm-user";
             control = "required";
             modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
             args = "audit quiet_success user = lightdm";
@@ -405,7 +405,7 @@ in
             modulePath = "${config.security.pam.package}/lib/security/pam_nologin.so";
           }
           {
-            name = "succeed_if";
+            name = "lightdm-normal-user";
             control = "required";
             modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
             args = "uid >= 1000 quiet";

@@ -116,7 +116,7 @@ in
               modulePath = "pam_nologin.so";
             }
             {
-              name = "succeed_if";
+              name = "ly-normal-user";
               control = "required";
               modulePath = "pam_succeed_if.so";
               args = "uid >= 1000 quiet";
