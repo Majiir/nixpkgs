@@ -2549,14 +2549,70 @@ in
 
     security.pam.services = {
       other.text = ''
-        auth     required ${package}/lib/security/pam_warn.so
-        auth     required ${package}/lib/security/pam_deny.so
-        account  required ${package}/lib/security/pam_warn.so
-        account  required ${package}/lib/security/pam_deny.so
-        password required ${package}/lib/security/pam_warn.so
-        password required ${package}/lib/security/pam_deny.so
-        session  required ${package}/lib/security/pam_warn.so
-        session  required ${package}/lib/security/pam_deny.so
+          auth = utils.pam.autoOrderRules [
+            {
+              name = "warn";
+              control = "required";
+              modulePath = "${package}/lib/security/pam_warn.so";
+              args = "";
+            }
+          ];
+          auth = utils.pam.autoOrderRules [
+            {
+              name = "deny";
+              control = "required";
+              modulePath = "${package}/lib/security/pam_deny.so";
+              args = "";
+            }
+          ];
+          account = utils.pam.autoOrderRules [
+            {
+              name = "warn";
+              control = "required";
+              modulePath = "${package}/lib/security/pam_warn.so";
+              args = "";
+            }
+          ];
+          account = utils.pam.autoOrderRules [
+            {
+              name = "deny";
+              control = "required";
+              modulePath = "${package}/lib/security/pam_deny.so";
+              args = "";
+            }
+          ];
+          password = utils.pam.autoOrderRules [
+            {
+              name = "warn";
+              control = "required";
+              modulePath = "${package}/lib/security/pam_warn.so";
+              args = "";
+            }
+          ];
+          password = utils.pam.autoOrderRules [
+            {
+              name = "deny";
+              control = "required";
+              modulePath = "${package}/lib/security/pam_deny.so";
+              args = "";
+            }
+          ];
+          session = utils.pam.autoOrderRules [
+            {
+              name = "warn";
+              control = "required";
+              modulePath = "${package}/lib/security/pam_warn.so";
+              args = "";
+            }
+          ];
+          session = utils.pam.autoOrderRules [
+            {
+              name = "deny";
+              control = "required";
+              modulePath = "${package}/lib/security/pam_deny.so";
+              args = "";
+            }
+          ];
       '';
 
       # Most of these should be moved to specific modules.

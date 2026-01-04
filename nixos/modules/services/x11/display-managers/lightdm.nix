@@ -281,45 +281,199 @@ in
     security.polkit.enable = true;
 
     security.pam.services.lightdm.text = ''
-      auth      substack      login
-      account   include       login
-      password  substack      login
-      session   include       login
+        auth = utils.pam.autoOrderRules [
+          {
+            name = "login";
+            control = "substack";
+            modulePath = "login";
+            args = "";
+          }
+        ];
+        account = utils.pam.autoOrderRules [
+          {
+            name = "login";
+            control = "include";
+            modulePath = "login";
+            args = "";
+          }
+        ];
+        password = utils.pam.autoOrderRules [
+          {
+            name = "login";
+            control = "substack";
+            modulePath = "login";
+            args = "";
+          }
+        ];
+        session = utils.pam.autoOrderRules [
+          {
+            name = "login";
+            control = "include";
+            modulePath = "login";
+            args = "";
+          }
+        ];
     ''
     # https://github.com/elementary/switchboard-plug-parental-controls/blob/8.0.1/src/daemon/Server.vala#L325
     # Must specify conffile since pam_time defaults to ${linux-pam}/etc/security/time.conf.
     + lib.optionalString config.services.pantheon.parental-controls.enable ''
-      account   required      ${config.security.pam.package}/lib/security/pam_time.so conffile=/etc/security/time.conf
+        account = utils.pam.autoOrderRules [
+          {
+            name = "time";
+            control = "required";
+            modulePath = "${config.security.pam.package}/lib/security/pam_time.so";
+            args = "conffile=/etc/security/time.conf";
+          }
+        ];
     '';
 
     security.pam.services.lightdm-greeter.text = ''
-      auth     required       ${config.security.pam.package}/lib/security/pam_succeed_if.so audit quiet_success user = lightdm
-      auth     optional       ${config.security.pam.package}/lib/security/pam_permit.so
+        auth = utils.pam.autoOrderRules [
+          {
+            name = "succeed_if";
+            control = "required";
+            modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
+            args = "audit quiet_success user = lightdm";
+          }
+        ];
+        auth = utils.pam.autoOrderRules [
+          {
+            name = "permit";
+            control = "optional";
+            modulePath = "${config.security.pam.package}/lib/security/pam_permit.so";
+            args = "";
+          }
+        ];
 
-      account  required       ${config.security.pam.package}/lib/security/pam_succeed_if.so audit quiet_success user = lightdm
-      account  sufficient     ${config.security.pam.package}/lib/security/pam_unix.so
+        account = utils.pam.autoOrderRules [
+          {
+            name = "succeed_if";
+            control = "required";
+            modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
+            args = "audit quiet_success user = lightdm";
+          }
+        ];
+        account = utils.pam.autoOrderRules [
+          {
+            name = "unix";
+            control = "sufficient";
+            modulePath = "${config.security.pam.package}/lib/security/pam_unix.so";
+            args = "";
+          }
+        ];
 
-      password required       ${config.security.pam.package}/lib/security/pam_deny.so
+        password = utils.pam.autoOrderRules [
+          {
+            name = "deny";
+            control = "required";
+            modulePath = "${config.security.pam.package}/lib/security/pam_deny.so";
+            args = "";
+          }
+        ];
 
-      session  required       ${config.security.pam.package}/lib/security/pam_succeed_if.so audit quiet_success user = lightdm
-      session  required       ${config.security.pam.package}/lib/security/pam_env.so conffile=/etc/pam/environment readenv=0
-      session  optional       ${config.systemd.package}/lib/security/pam_systemd.so
-      session  optional       ${config.security.pam.package}/lib/security/pam_keyinit.so force revoke
-      session  optional       ${config.security.pam.package}/lib/security/pam_permit.so
+        session = utils.pam.autoOrderRules [
+          {
+            name = "succeed_if";
+            control = "required";
+            modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
+            args = "audit quiet_success user = lightdm";
+          }
+        ];
+        session = utils.pam.autoOrderRules [
+          {
+            name = "env";
+            control = "required";
+            modulePath = "${config.security.pam.package}/lib/security/pam_env.so";
+            args = "conffile=/etc/pam/environment readenv=0";
+          }
+        ];
+        session = utils.pam.autoOrderRules [
+          {
+            name = "systemd";
+            control = "optional";
+            modulePath = "${config.systemd.package}/lib/security/pam_systemd.so";
+            args = "";
+          }
+        ];
+        session = utils.pam.autoOrderRules [
+          {
+            name = "keyinit";
+            control = "optional";
+            modulePath = "${config.security.pam.package}/lib/security/pam_keyinit.so";
+            args = "force revoke";
+          }
+        ];
+        session = utils.pam.autoOrderRules [
+          {
+            name = "permit";
+            control = "optional";
+            modulePath = "${config.security.pam.package}/lib/security/pam_permit.so";
+            args = "";
+          }
+        ];
     '';
 
     security.pam.services.lightdm-autologin.text = ''
-      auth      requisite     ${config.security.pam.package}/lib/security/pam_nologin.so
+        auth = utils.pam.autoOrderRules [
+          {
+            name = "nologin";
+            control = "requisite";
+            modulePath = "${config.security.pam.package}/lib/security/pam_nologin.so";
+            args = "";
+          }
+        ];
 
-      auth      required      ${config.security.pam.package}/lib/security/pam_succeed_if.so uid >= 1000 quiet
-      auth      required      ${config.security.pam.package}/lib/security/pam_permit.so
+        auth = utils.pam.autoOrderRules [
+          {
+            name = "succeed_if";
+            control = "required";
+            modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
+            args = "uid >= 1000 quiet";
+          }
+        ];
+        auth = utils.pam.autoOrderRules [
+          {
+            name = "permit";
+            control = "required";
+            modulePath = "${config.security.pam.package}/lib/security/pam_permit.so";
+            args = "";
+          }
+        ];
 
-      account   sufficient    ${config.security.pam.package}/lib/security/pam_unix.so
+        account = utils.pam.autoOrderRules [
+          {
+            name = "unix";
+            control = "sufficient";
+            modulePath = "${config.security.pam.package}/lib/security/pam_unix.so";
+            args = "";
+          }
+        ];
 
-      password  requisite     ${config.security.pam.package}/lib/security/pam_unix.so nullok yescrypt
+        password = utils.pam.autoOrderRules [
+          {
+            name = "unix";
+            control = "requisite";
+            modulePath = "${config.security.pam.package}/lib/security/pam_unix.so";
+            args = "nullok yescrypt";
+          }
+        ];
 
-      session   optional      ${config.security.pam.package}/lib/security/pam_keyinit.so revoke
-      session   include       login
+        session = utils.pam.autoOrderRules [
+          {
+            name = "keyinit";
+            control = "optional";
+            modulePath = "${config.security.pam.package}/lib/security/pam_keyinit.so";
+            args = "revoke";
+          }
+        ];
+        session = utils.pam.autoOrderRules [
+          {
+            name = "login";
+            control = "include";
+            modulePath = "login";
+            args = "";
+          }
+        ];
     '';
 
     users.users.lightdm = {

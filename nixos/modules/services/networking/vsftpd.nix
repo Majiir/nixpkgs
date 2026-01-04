@@ -335,8 +335,22 @@ in
     };
 
     security.pam.services.vsftpd.text = mkIf (cfg.enableVirtualUsers && cfg.userDbPath != null) ''
-      auth required ${config.security.pam.package}/lib/security/pam_userdb.so db=${cfg.userDbPath}
-      account required ${config.security.pam.package}/lib/security/pam_userdb.so db=${cfg.userDbPath}
+        auth = utils.pam.autoOrderRules [
+          {
+            name = "userdb";
+            control = "required";
+            modulePath = "${config.security.pam.package}/lib/security/pam_userdb.so";
+            args = "db=${cfg.userDbPath}";
+          }
+        ];
+        account = utils.pam.autoOrderRules [
+          {
+            name = "userdb";
+            control = "required";
+            modulePath = "${config.security.pam.package}/lib/security/pam_userdb.so";
+            args = "db=${cfg.userDbPath}";
+          }
+        ];
     '';
   };
 }

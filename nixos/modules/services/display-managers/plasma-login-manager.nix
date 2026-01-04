@@ -85,37 +85,142 @@ in
 
     security.pam.services = {
       plasmalogin.text = ''
-        auth      substack      login
-        account   include       login
-        password  substack      login
-        session   include       login
+          auth = utils.pam.autoOrderRules [
+            {
+              name = "login";
+              control = "substack";
+              modulePath = "login";
+              args = "";
+            }
+          ];
+          account = utils.pam.autoOrderRules [
+            {
+              name = "login";
+              control = "include";
+              modulePath = "login";
+              args = "";
+            }
+          ];
+          password = utils.pam.autoOrderRules [
+            {
+              name = "login";
+              control = "substack";
+              modulePath = "login";
+              args = "";
+            }
+          ];
+          session = utils.pam.autoOrderRules [
+            {
+              name = "login";
+              control = "include";
+              modulePath = "login";
+              args = "";
+            }
+          ];
       '';
 
       plasmalogin-autologin.text = ''
-        auth     requisite pam_nologin.so
-        auth     required  pam_permit.so
+          auth = utils.pam.autoOrderRules [
+            {
+              name = "nologin";
+              control = "requisite";
+              modulePath = "pam_nologin.so";
+              args = "";
+            }
+          ];
+          auth = utils.pam.autoOrderRules [
+            {
+              name = "permit";
+              control = "required";
+              modulePath = "pam_permit.so";
+              args = "";
+            }
+          ];
 
-        account  include   plasmalogin
-        password include   plasmalogin
-        session  include   plasmalogin
+          account = utils.pam.autoOrderRules [
+            {
+              name = "plasmalogin";
+              control = "include";
+              modulePath = "plasmalogin";
+              args = "";
+            }
+          ];
+          password = utils.pam.autoOrderRules [
+            {
+              name = "plasmalogin";
+              control = "include";
+              modulePath = "plasmalogin";
+              args = "";
+            }
+          ];
+          session = utils.pam.autoOrderRules [
+            {
+              name = "plasmalogin";
+              control = "include";
+              modulePath = "plasmalogin";
+              args = "";
+            }
+          ];
       '';
 
       plasmalogin-greeter.text = ''
         # Load environment from /etc/environment and ~/.pam_environment
-        auth		required pam_env.so conffile=/etc/pam/environment readenv=0
+          auth = utils.pam.autoOrderRules [
+            {
+              name = "env";
+              control = "required";
+              modulePath = "pam_env.so";
+              args = "conffile=/etc/pam/environment readenv=0";
+            }
+          ];
 
         # Always let the greeter start without authentication
-        auth		required pam_permit.so
+          auth = utils.pam.autoOrderRules [
+            {
+              name = "permit";
+              control = "required";
+              modulePath = "pam_permit.so";
+              args = "";
+            }
+          ];
 
         # No action required for account management
-        account		required pam_permit.so
+          account = utils.pam.autoOrderRules [
+            {
+              name = "permit";
+              control = "required";
+              modulePath = "pam_permit.so";
+              args = "";
+            }
+          ];
 
         # Can't change password
-        password	required pam_deny.so
+          password = utils.pam.autoOrderRules [
+            {
+              name = "deny";
+              control = "required";
+              modulePath = "pam_deny.so";
+              args = "";
+            }
+          ];
 
         # Setup session
-        session		required pam_unix.so
-        session		optional ${config.systemd.package}/lib/security/pam_systemd.so
+          session = utils.pam.autoOrderRules [
+            {
+              name = "unix";
+              control = "required";
+              modulePath = "pam_unix.so";
+              args = "";
+            }
+          ];
+          session = utils.pam.autoOrderRules [
+            {
+              name = "systemd";
+              control = "optional";
+              modulePath = "${config.systemd.package}/lib/security/pam_systemd.so";
+              args = "";
+            }
+          ];
       '';
     };
 

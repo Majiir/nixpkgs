@@ -107,15 +107,57 @@ in
     }
     // optionalAttrs dmcfg.autoLogin.enable {
       ly-autologin.text = ''
-        auth      requisite pam_nologin.so
-        auth      required  pam_succeed_if.so uid >= 1000 quiet
-        auth      required  pam_permit.so
+          auth = utils.pam.autoOrderRules [
+            {
+              name = "nologin";
+              control = "requisite";
+              modulePath = "pam_nologin.so";
+              args = "";
+            }
+          ];
+          auth = utils.pam.autoOrderRules [
+            {
+              name = "succeed_if";
+              control = "required";
+              modulePath = "pam_succeed_if.so";
+              args = "uid >= 1000 quiet";
+            }
+          ];
+          auth = utils.pam.autoOrderRules [
+            {
+              name = "permit";
+              control = "required";
+              modulePath = "pam_permit.so";
+              args = "";
+            }
+          ];
 
-        account   include   ly
+          account = utils.pam.autoOrderRules [
+            {
+              name = "ly";
+              control = "include";
+              modulePath = "ly";
+              args = "";
+            }
+          ];
 
-        password  include   ly
+          password = utils.pam.autoOrderRules [
+            {
+              name = "ly";
+              control = "include";
+              modulePath = "ly";
+              args = "";
+            }
+          ];
 
-        session   include   ly
+          session = utils.pam.autoOrderRules [
+            {
+              name = "ly";
+              control = "include";
+              modulePath = "ly";
+              args = "";
+            }
+          ];
       '';
     };
 
