@@ -515,7 +515,7 @@ in
               args = [
                 "uid"
                 ">="
-                "${toString cfg.autoLogin.minimumUid}"
+                (toString cfg.autoLogin.minimumUid)
                 "quiet"
               ];
             }
