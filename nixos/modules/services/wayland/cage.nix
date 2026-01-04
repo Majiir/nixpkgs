@@ -114,9 +114,7 @@ in
             name = "unix";
             control = "required";
             modulePath = "${config.security.pam.package}/lib/security/pam_unix.so";
-            args = [
-              "nullok"
-            ];
+            settings.nullok = true;
           }
         ];
         account = utils.pam.autoOrderRules [
@@ -136,10 +134,8 @@ in
             name = "env";
             control = "required";
             modulePath = "${config.security.pam.package}/lib/security/pam_env.so";
-            args = [
-              "conffile=/etc/pam/environment"
-              "readenv=0"
-            ];
+            settings.conffile = "/etc/pam/environment";
+            settings.readenv = 0;
           }
           {
             name = "systemd";

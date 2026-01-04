@@ -119,11 +119,11 @@ in
               name = "ly-normal-user";
               control = "required";
               modulePath = "pam_succeed_if.so";
-              args = [
+              settings.quiet = true;
+              args = lib.mkBefore [
                 "uid"
                 ">="
                 "1000"
-                "quiet"
               ];
             }
             {

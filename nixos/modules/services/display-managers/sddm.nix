@@ -411,9 +411,9 @@ in
               name = "sddm-user";
               control = "required";
               modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
-              args = [
-                "audit"
-                "quiet_success"
+              settings.audit = true;
+              settings.quiet_success = true;
+              args = lib.mkAfter [
                 "user"
                 "="
                 "sddm"
@@ -431,9 +431,9 @@ in
               name = "sddm-user";
               control = "required";
               modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
-              args = [
-                "audit"
-                "quiet_success"
+              settings.audit = true;
+              settings.quiet_success = true;
+              args = lib.mkAfter [
                 "user"
                 "="
                 "sddm"
@@ -459,9 +459,9 @@ in
               name = "sddm-user";
               control = "required";
               modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
-              args = [
-                "audit"
-                "quiet_success"
+              settings.audit = true;
+              settings.quiet_success = true;
+              args = lib.mkAfter [
                 "user"
                 "="
                 "sddm"
@@ -471,10 +471,8 @@ in
               name = "env";
               control = "required";
               modulePath = "${config.security.pam.package}/lib/security/pam_env.so";
-              args = [
-                "conffile=/etc/pam/environment"
-                "readenv=0"
-              ];
+              settings.conffile = "/etc/pam/environment";
+              settings.readenv = 0;
             }
             {
               name = "systemd";
@@ -485,10 +483,8 @@ in
               name = "keyinit";
               control = "optional";
               modulePath = "${config.security.pam.package}/lib/security/pam_keyinit.so";
-              args = [
-                "force"
-                "revoke"
-              ];
+              settings.force = true;
+              settings.revoke = true;
             }
             {
               name = "permit";
@@ -512,11 +508,11 @@ in
               name = "sddm-autologin-user";
               control = "required";
               modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
-              args = [
+              settings.quiet = true;
+              args = lib.mkBefore [
                 "uid"
                 ">="
                 (toString cfg.autoLogin.minimumUid)
-                "quiet"
               ];
             }
             {

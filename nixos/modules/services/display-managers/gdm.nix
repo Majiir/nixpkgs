@@ -392,9 +392,9 @@ in
               name = "gdm-user";
               control = "required";
               modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
-              args = [
-                "audit"
-                "quiet_success"
+              settings.audit = true;
+              settings.quiet_success = true;
+              args = lib.mkAfter [
                 "user"
                 "ingroup"
                 "gdm"
@@ -412,9 +412,9 @@ in
               name = "gdm-user";
               control = "required";
               modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
-              args = [
-                "audit"
-                "quiet_success"
+              settings.audit = true;
+              settings.quiet_success = true;
+              args = lib.mkAfter [
                 "user"
                 "ingroup"
                 "gdm"
@@ -440,9 +440,9 @@ in
               name = "gdm-user";
               control = "required";
               modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
-              args = [
-                "audit"
-                "quiet_success"
+              settings.audit = true;
+              settings.quiet_success = true;
+              args = lib.mkAfter [
                 "user"
                 "ingroup"
                 "gdm"
@@ -452,10 +452,8 @@ in
               name = "env";
               control = "required";
               modulePath = "${config.security.pam.package}/lib/security/pam_env.so";
-              args = [
-                "conffile=/etc/pam/environment"
-                "readenv=0"
-              ];
+              settings.conffile = "/etc/pam/environment";
+              settings.readenv = 0;
             }
             {
               name = "systemd";
@@ -466,10 +464,8 @@ in
               name = "keyinit";
               control = "optional";
               modulePath = "${config.security.pam.package}/lib/security/pam_keyinit.so";
-              args = [
-                "force"
-                "revoke"
-              ];
+              settings.force = true;
+              settings.revoke = true;
             }
             {
               name = "permit";
@@ -527,11 +523,11 @@ in
               name = "gdm-normal-user";
               control = "required";
               modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
-              args = [
+              settings.quiet = true;
+              args = lib.mkBefore [
                 "uid"
                 ">="
                 "1000"
-                "quiet"
               ];
             }
             {
@@ -566,10 +562,8 @@ in
               name = "unix";
               control = "requisite";
               modulePath = "${config.security.pam.package}/lib/security/pam_unix.so";
-              args = [
-                "nullok"
-                "yescrypt"
-              ];
+              settings.nullok = true;
+              settings.yescrypt = true;
             }
           ];
 
@@ -578,9 +572,7 @@ in
               name = "keyinit";
               control = "optional";
               modulePath = "${config.security.pam.package}/lib/security/pam_keyinit.so";
-              args = [
-                "revoke"
-              ];
+              settings.revoke = true;
             }
             {
               name = "login";
@@ -613,9 +605,7 @@ in
               name = "faillock";
               control = "requisite";
               modulePath = "${config.security.pam.package}/lib/security/pam_faillock.so";
-              args = [
-                "preauth"
-              ];
+              settings.preauth = true;
             }
             {
               name = "fprintd";
@@ -626,10 +616,8 @@ in
               name = "env";
               control = "required";
               modulePath = "${config.security.pam.package}/lib/security/pam_env.so";
-              args = [
-                "conffile=/etc/pam/environment"
-                "readenv=0"
-              ];
+              settings.conffile = "/etc/pam/environment";
+              settings.readenv = 0;
             }
             {
               name = "gdm";
