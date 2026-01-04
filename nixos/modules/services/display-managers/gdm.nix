@@ -392,8 +392,6 @@ in
               modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
               args = "audit quiet_success user ingroup gdm";
             }
-          ];
-          auth = utils.pam.autoOrderRules [
             {
               name = "permit";
               control = "optional";
@@ -409,8 +407,6 @@ in
               modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
               args = "audit quiet_success user ingroup gdm";
             }
-          ];
-          account = utils.pam.autoOrderRules [
             {
               name = "unix";
               control = "sufficient";
@@ -435,32 +431,24 @@ in
               modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
               args = "audit quiet_success user ingroup gdm";
             }
-          ];
-          session = utils.pam.autoOrderRules [
             {
               name = "env";
               control = "required";
               modulePath = "${config.security.pam.package}/lib/security/pam_env.so";
               args = "conffile=/etc/pam/environment readenv=0";
             }
-          ];
-          session = utils.pam.autoOrderRules [
             {
               name = "systemd";
               control = "optional";
               modulePath = "${config.systemd.package}/lib/security/pam_systemd.so";
               args = "";
             }
-          ];
-          session = utils.pam.autoOrderRules [
             {
               name = "keyinit";
               control = "optional";
               modulePath = "${config.security.pam.package}/lib/security/pam_keyinit.so";
               args = "force revoke";
             }
-          ];
-          session = utils.pam.autoOrderRules [
             {
               name = "permit";
               control = "optional";
@@ -513,16 +501,12 @@ in
               modulePath = "${config.security.pam.package}/lib/security/pam_nologin.so";
               args = "";
             }
-          ];
-          auth = utils.pam.autoOrderRules [
             {
               name = "succeed_if";
               control = "required";
               modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
               args = "uid >= 1000 quiet";
             }
-          ];
-          auth = utils.pam.autoOrderRules [
             {
               name = "gdm";
               enable = pamLogin.enable && pamLogin.enableGnomeKeyring;
@@ -530,8 +514,6 @@ in
               modulePath = "${gdm}/lib/security/pam_gdm.so";
               args = "";
             }
-          ];
-          auth = utils.pam.autoOrderRules [
             {
               name = "gnome_keyring";
               enable = pamLogin.enable && pamLogin.enableGnomeKeyring;
@@ -539,8 +521,6 @@ in
               modulePath = "${pkgs.gnome-keyring}/lib/security/pam_gnome_keyring.so";
               args = "";
             }
-          ];
-          auth = utils.pam.autoOrderRules [
             {
               name = "permit";
               control = "required";
@@ -574,8 +554,6 @@ in
               modulePath = "${config.security.pam.package}/lib/security/pam_keyinit.so";
               args = "revoke";
             }
-          ];
-          session = utils.pam.autoOrderRules [
             {
               name = "login";
               control = "include";
@@ -597,40 +575,30 @@ in
               modulePath = "${config.security.pam.package}/lib/security/pam_shells.so";
               args = "";
             }
-          ];
-          auth = utils.pam.autoOrderRules [
             {
               name = "nologin";
               control = "requisite";
               modulePath = "${config.security.pam.package}/lib/security/pam_nologin.so";
               args = "";
             }
-          ];
-          auth = utils.pam.autoOrderRules [
             {
               name = "faillock";
               control = "requisite";
               modulePath = "${config.security.pam.package}/lib/security/pam_faillock.so";
               args = "preauth";
             }
-          ];
-          auth = utils.pam.autoOrderRules [
             {
               name = "fprintd";
               control = "required";
               modulePath = "${pkgs.fprintd}/lib/security/pam_fprintd.so";
               args = "";
             }
-          ];
-          auth = utils.pam.autoOrderRules [
             {
               name = "env";
               control = "required";
               modulePath = "${config.security.pam.package}/lib/security/pam_env.so";
               args = "conffile=/etc/pam/environment readenv=0";
             }
-          ];
-          auth = utils.pam.autoOrderRules [
             {
               name = "gdm";
               enable = pamLogin.enable && pamLogin.enableGnomeKeyring;
@@ -638,8 +606,6 @@ in
               modulePath = "${gdm}/lib/security/pam_gdm.so";
               args = "";
             }
-          ];
-          auth = utils.pam.autoOrderRules [
             {
               name = "gnome_keyring";
               enable = pamLogin.enable && pamLogin.enableGnomeKeyring;

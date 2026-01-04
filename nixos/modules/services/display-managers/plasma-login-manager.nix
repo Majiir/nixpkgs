@@ -127,8 +127,6 @@ in
               modulePath = "pam_nologin.so";
               args = "";
             }
-          ];
-          auth = utils.pam.autoOrderRules [
             {
               name = "permit";
               control = "required";
@@ -172,9 +170,6 @@ in
               modulePath = "pam_env.so";
               args = "conffile=/etc/pam/environment readenv=0";
             }
-          ];
-
-          auth = utils.pam.autoOrderRules [
             {
               # Always let the greeter start without authentication
               name = "permit";
@@ -212,8 +207,6 @@ in
               modulePath = "pam_unix.so";
               args = "";
             }
-          ];
-          session = utils.pam.autoOrderRules [
             {
               name = "systemd";
               control = "optional";

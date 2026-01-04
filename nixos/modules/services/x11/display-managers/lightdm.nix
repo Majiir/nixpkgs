@@ -296,8 +296,6 @@ in
             modulePath = "login";
             args = "";
           }
-        ];
-        account = utils.pam.autoOrderRules [
           {
             name = "time";
             # https://github.com/elementary/switchboard-plug-parental-controls/blob/8.0.1/src/daemon/Server.vala#L325
@@ -334,8 +332,6 @@ in
             modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
             args = "audit quiet_success user = lightdm";
           }
-        ];
-        auth = utils.pam.autoOrderRules [
           {
             name = "permit";
             control = "optional";
@@ -351,8 +347,6 @@ in
             modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
             args = "audit quiet_success user = lightdm";
           }
-        ];
-        account = utils.pam.autoOrderRules [
           {
             name = "unix";
             control = "sufficient";
@@ -377,32 +371,24 @@ in
             modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
             args = "audit quiet_success user = lightdm";
           }
-        ];
-        session = utils.pam.autoOrderRules [
           {
             name = "env";
             control = "required";
             modulePath = "${config.security.pam.package}/lib/security/pam_env.so";
             args = "conffile=/etc/pam/environment readenv=0";
           }
-        ];
-        session = utils.pam.autoOrderRules [
           {
             name = "systemd";
             control = "optional";
             modulePath = "${config.systemd.package}/lib/security/pam_systemd.so";
             args = "";
           }
-        ];
-        session = utils.pam.autoOrderRules [
           {
             name = "keyinit";
             control = "optional";
             modulePath = "${config.security.pam.package}/lib/security/pam_keyinit.so";
             args = "force revoke";
           }
-        ];
-        session = utils.pam.autoOrderRules [
           {
             name = "permit";
             control = "optional";
@@ -420,17 +406,12 @@ in
             modulePath = "${config.security.pam.package}/lib/security/pam_nologin.so";
             args = "";
           }
-        ];
-
-        auth = utils.pam.autoOrderRules [
           {
             name = "succeed_if";
             control = "required";
             modulePath = "${config.security.pam.package}/lib/security/pam_succeed_if.so";
             args = "uid >= 1000 quiet";
           }
-        ];
-        auth = utils.pam.autoOrderRules [
           {
             name = "permit";
             control = "required";
@@ -464,8 +445,6 @@ in
             modulePath = "${config.security.pam.package}/lib/security/pam_keyinit.so";
             args = "revoke";
           }
-        ];
-        session = utils.pam.autoOrderRules [
           {
             name = "login";
             control = "include";

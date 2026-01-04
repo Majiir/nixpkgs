@@ -114,16 +114,12 @@ in
               modulePath = "pam_nologin.so";
               args = "";
             }
-          ];
-          auth = utils.pam.autoOrderRules [
             {
               name = "succeed_if";
               control = "required";
               modulePath = "pam_succeed_if.so";
               args = "uid >= 1000 quiet";
             }
-          ];
-          auth = utils.pam.autoOrderRules [
             {
               name = "permit";
               control = "required";

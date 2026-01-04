@@ -130,16 +130,12 @@ in
             modulePath = "${config.security.pam.package}/lib/security/pam_unix.so";
             args = "";
           }
-        ];
-        session = utils.pam.autoOrderRules [
           {
             name = "env";
             control = "required";
             modulePath = "${config.security.pam.package}/lib/security/pam_env.so";
             args = "conffile=/etc/pam/environment readenv=0";
           }
-        ];
-        session = utils.pam.autoOrderRules [
           {
             name = "systemd";
             control = "required";

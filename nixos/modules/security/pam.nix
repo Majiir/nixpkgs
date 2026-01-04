@@ -2556,8 +2556,6 @@ in
               modulePath = "${package}/lib/security/pam_warn.so";
               args = "";
             }
-          ];
-          auth = utils.pam.autoOrderRules [
             {
               name = "deny";
               control = "required";
@@ -2572,8 +2570,6 @@ in
               modulePath = "${package}/lib/security/pam_warn.so";
               args = "";
             }
-          ];
-          account = utils.pam.autoOrderRules [
             {
               name = "deny";
               control = "required";
@@ -2588,8 +2584,6 @@ in
               modulePath = "${package}/lib/security/pam_warn.so";
               args = "";
             }
-          ];
-          password = utils.pam.autoOrderRules [
             {
               name = "deny";
               control = "required";
@@ -2604,8 +2598,6 @@ in
               modulePath = "${package}/lib/security/pam_warn.so";
               args = "";
             }
-          ];
-          session = utils.pam.autoOrderRules [
             {
               name = "deny";
               control = "required";
