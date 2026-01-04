@@ -522,24 +522,24 @@ in
               args = "uid >= 1000 quiet";
             }
           ];
-            auth = utils.pam.autoOrderRules [
-              {
-                name = "gdm";
-                enable = pamLogin.enable && pamLogin.enableGnomeKeyring;
-                control = "[success=ok default=1]";
-                modulePath = "${gdm}/lib/security/pam_gdm.so";
-                args = "";
-              }
-            ];
-            auth = utils.pam.autoOrderRules [
-              {
-                name = "gnome_keyring";
-                enable = pamLogin.enable && pamLogin.enableGnomeKeyring;
-                control = "optional";
-                modulePath = "${pkgs.gnome-keyring}/lib/security/pam_gnome_keyring.so";
-                args = "";
-              }
-            ];
+          auth = utils.pam.autoOrderRules [
+            {
+              name = "gdm";
+              enable = pamLogin.enable && pamLogin.enableGnomeKeyring;
+              control = "[success=ok default=1]";
+              modulePath = "${gdm}/lib/security/pam_gdm.so";
+              args = "";
+            }
+          ];
+          auth = utils.pam.autoOrderRules [
+            {
+              name = "gnome_keyring";
+              enable = pamLogin.enable && pamLogin.enableGnomeKeyring;
+              control = "optional";
+              modulePath = "${pkgs.gnome-keyring}/lib/security/pam_gnome_keyring.so";
+              args = "";
+            }
+          ];
           auth = utils.pam.autoOrderRules [
             {
               name = "permit";
@@ -630,24 +630,24 @@ in
               args = "conffile=/etc/pam/environment readenv=0";
             }
           ];
-            auth = utils.pam.autoOrderRules [
-              {
-                name = "gdm";
-                enable = pamLogin.enable && pamLogin.enableGnomeKeyring;
-                control = "[success=ok default=1]";
-                modulePath = "${gdm}/lib/security/pam_gdm.so";
-                args = "";
-              }
-            ];
-            auth = utils.pam.autoOrderRules [
-              {
-                name = "gnome_keyring";
-                enable = pamLogin.enable && pamLogin.enableGnomeKeyring;
-                control = "optional";
-                modulePath = "${pkgs.gnome-keyring}/lib/security/pam_gnome_keyring.so";
-                args = "";
-              }
-            ];
+          auth = utils.pam.autoOrderRules [
+            {
+              name = "gdm";
+              enable = pamLogin.enable && pamLogin.enableGnomeKeyring;
+              control = "[success=ok default=1]";
+              modulePath = "${gdm}/lib/security/pam_gdm.so";
+              args = "";
+            }
+          ];
+          auth = utils.pam.autoOrderRules [
+            {
+              name = "gnome_keyring";
+              enable = pamLogin.enable && pamLogin.enableGnomeKeyring;
+              control = "optional";
+              modulePath = "${pkgs.gnome-keyring}/lib/security/pam_gnome_keyring.so";
+              args = "";
+            }
+          ];
 
           account = utils.pam.autoOrderRules [
             {
