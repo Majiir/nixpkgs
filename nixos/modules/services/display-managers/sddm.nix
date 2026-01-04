@@ -369,7 +369,9 @@ in
     };
 
     security.pam.services = {
-      sddm.text = ''
+      sddm = {
+        useDefaultRules = false;
+        rules = {
           auth = utils.pam.autoOrderRules [
             {
               name = "login";
@@ -402,9 +404,12 @@ in
               args = "";
             }
           ];
-      '';
+        };
+      };
 
-      sddm-greeter.text = ''
+      sddm-greeter = {
+        useDefaultRules = false;
+        rules = {
           auth = utils.pam.autoOrderRules [
             {
               name = "succeed_if";
@@ -476,9 +481,12 @@ in
               args = "";
             }
           ];
-      '';
+        };
+      };
 
-      sddm-autologin.text = ''
+      sddm-autologin = {
+        useDefaultRules = false;
+        rules = {
           auth = utils.pam.autoOrderRules [
             {
               name = "nologin";
@@ -526,7 +534,8 @@ in
               args = "";
             }
           ];
-      '';
+        };
+      };
     };
 
     users.users.sddm = {

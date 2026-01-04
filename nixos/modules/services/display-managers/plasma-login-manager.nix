@@ -84,7 +84,9 @@ in
     environment.etc."plasmalogin.conf.d/99-user.conf".source = userConfigFile;
 
     security.pam.services = {
-      plasmalogin.text = ''
+      plasmalogin = {
+        useDefaultRules = false;
+        rules = {
           auth = utils.pam.autoOrderRules [
             {
               name = "login";
@@ -117,9 +119,12 @@ in
               args = "";
             }
           ];
-      '';
+        };
+      };
 
-      plasmalogin-autologin.text = ''
+      plasmalogin-autologin = {
+        useDefaultRules = false;
+        rules = {
           auth = utils.pam.autoOrderRules [
             {
               name = "nologin";
@@ -159,9 +164,12 @@ in
               args = "";
             }
           ];
-      '';
+        };
+      };
 
-      plasmalogin-greeter.text = ''
+      plasmalogin-greeter = {
+        useDefaultRules = false;
+        rules = {
           auth = utils.pam.autoOrderRules [
             {
               # Load environment from /etc/environment and ~/.pam_environment
@@ -214,7 +222,8 @@ in
               args = "";
             }
           ];
-      '';
+        };
+      };
     };
 
     # FIXME: use upstream sysusers

@@ -106,7 +106,9 @@ in
       };
     }
     // optionalAttrs dmcfg.autoLogin.enable {
-      ly-autologin.text = ''
+      ly-autologin = {
+        useDefaultRules = false;
+        rules = {
           auth = utils.pam.autoOrderRules [
             {
               name = "nologin";
@@ -154,7 +156,8 @@ in
               args = "";
             }
           ];
-      '';
+        };
+      };
     };
 
     environment = {

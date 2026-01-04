@@ -334,7 +334,9 @@ in
       };
     };
 
-    security.pam.services.vsftpd.text = mkIf (cfg.enableVirtualUsers && cfg.userDbPath != null) ''
+    security.pam.services.vsftpd = mkIf (cfg.enableVirtualUsers && cfg.userDbPath != null) {
+      useDefaultRules = false;
+      rules = {
         auth = utils.pam.autoOrderRules [
           {
             name = "userdb";
@@ -351,6 +353,7 @@ in
             args = "db=${cfg.userDbPath}";
           }
         ];
-    '';
+      };
+    };
   };
 }

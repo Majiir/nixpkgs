@@ -2548,7 +2548,9 @@ in
         };
 
     security.pam.services = {
-      other.text = ''
+      other = {
+        useDefaultRules = false;
+        rules = {
           auth = utils.pam.autoOrderRules [
             {
               name = "warn";
@@ -2605,7 +2607,8 @@ in
               args = "";
             }
           ];
-      '';
+        };
+      };
 
       # Most of these should be moved to specific modules.
       i3lock.enable = lib.mkDefault config.programs.i3lock.enable;

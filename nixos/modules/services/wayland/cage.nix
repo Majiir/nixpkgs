@@ -106,7 +106,9 @@ in
 
     security.polkit.enable = true;
 
-    security.pam.services.cage.text = ''
+    security.pam.services.cage = {
+      useDefaultRules = false;
+      rules = {
         auth = utils.pam.autoOrderRules [
           {
             name = "unix";
@@ -143,7 +145,8 @@ in
             args = "";
           }
         ];
-    '';
+      };
+    };
 
     hardware.graphics.enable = mkDefault true;
 

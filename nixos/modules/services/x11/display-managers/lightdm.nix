@@ -280,7 +280,9 @@ in
 
     security.polkit.enable = true;
 
-    security.pam.services.lightdm.text = ''
+    security.pam.services.lightdm = {
+      useDefaultRules = false;
+      rules = {
         auth = utils.pam.autoOrderRules [
           {
             name = "login";
@@ -322,9 +324,12 @@ in
             args = "";
           }
         ];
-    '';
+      };
+    };
 
-    security.pam.services.lightdm-greeter.text = ''
+    security.pam.services.lightdm-greeter = {
+      useDefaultRules = false;
+      rules = {
         auth = utils.pam.autoOrderRules [
           {
             name = "succeed_if";
@@ -396,9 +401,12 @@ in
             args = "";
           }
         ];
-    '';
+      };
+    };
 
-    security.pam.services.lightdm-autologin.text = ''
+    security.pam.services.lightdm-autologin = {
+      useDefaultRules = false;
+      rules = {
         auth = utils.pam.autoOrderRules [
           {
             name = "nologin";
@@ -452,7 +460,8 @@ in
             args = "";
           }
         ];
-    '';
+      };
+    };
 
     users.users.lightdm = {
       home = "/var/lib/lightdm";

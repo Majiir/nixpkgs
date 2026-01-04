@@ -384,7 +384,9 @@ in
 
     # GDM LFS PAM modules, adapted somehow to NixOS
     security.pam.services = {
-      gdm-launch-environment.text = ''
+      gdm-launch-environment = {
+        useDefaultRules = false;
+        rules = {
           auth = utils.pam.autoOrderRules [
             {
               name = "succeed_if";
@@ -456,9 +458,12 @@ in
               args = "";
             }
           ];
-      '';
+        };
+      };
 
-      gdm-password.text = ''
+      gdm-password = {
+        useDefaultRules = false;
+        rules = {
           auth = utils.pam.autoOrderRules [
             {
               name = "login";
@@ -491,9 +496,12 @@ in
               args = "";
             }
           ];
-      '';
+        };
+      };
 
-      gdm-autologin.text = ''
+      gdm-autologin = {
+        useDefaultRules = false;
+        rules = {
           auth = utils.pam.autoOrderRules [
             {
               name = "nologin";
@@ -561,13 +569,16 @@ in
               args = "";
             }
           ];
-      '';
+        };
+      };
 
       # This would block password prompt when included by gdm-password.
       # GDM will instead run gdm-fingerprint in parallel.
       login.fprintAuth = lib.mkIf config.services.fprintd.enable false;
 
-      gdm-fingerprint.text = lib.mkIf config.services.fprintd.enable ''
+      gdm-fingerprint = lib.mkIf config.services.fprintd.enable {
+        useDefaultRules = false;
+        rules = {
           auth = utils.pam.autoOrderRules [
             {
               name = "shells";
@@ -641,7 +652,8 @@ in
               args = "";
             }
           ];
-      '';
+        };
+      };
     };
 
   };
