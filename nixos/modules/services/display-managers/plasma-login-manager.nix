@@ -164,9 +164,9 @@ in
       '';
 
       plasmalogin-greeter.text = ''
-        # Load environment from /etc/environment and ~/.pam_environment
           auth = utils.pam.autoOrderRules [
             {
+              # Load environment from /etc/environment and ~/.pam_environment
               name = "env";
               control = "required";
               modulePath = "pam_env.so";
@@ -174,9 +174,9 @@ in
             }
           ];
 
-        # Always let the greeter start without authentication
           auth = utils.pam.autoOrderRules [
             {
+              # Always let the greeter start without authentication
               name = "permit";
               control = "required";
               modulePath = "pam_permit.so";
@@ -184,9 +184,9 @@ in
             }
           ];
 
-        # No action required for account management
           account = utils.pam.autoOrderRules [
             {
+              # No action required for account management
               name = "permit";
               control = "required";
               modulePath = "pam_permit.so";
@@ -194,9 +194,9 @@ in
             }
           ];
 
-        # Can't change password
           password = utils.pam.autoOrderRules [
             {
+              # Can't change password
               name = "deny";
               control = "required";
               modulePath = "pam_deny.so";
@@ -204,9 +204,9 @@ in
             }
           ];
 
-        # Setup session
           session = utils.pam.autoOrderRules [
             {
+              # Setup session
               name = "unix";
               control = "required";
               modulePath = "pam_unix.so";
